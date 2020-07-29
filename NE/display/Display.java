@@ -35,4 +35,10 @@ public class Display {
 
         return option - 1;
     }
+
+    public static void myLog(String s) {
+        // String className = this.getClass().getName();
+        System.out.print(Thread.currentThread().getStackTrace()[2].getLineNumber());
+        System.out.println(s);
+    }
 }

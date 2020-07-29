@@ -3,29 +3,30 @@ package NE.board;
 import java.util.ArrayList;
 import java.util.List;
 
-import NE.card.AgricultureCard;
 import NE.card.Card;
-import NE.card.DrawCard;
-import NE.card.SchoolCard;
-import NE.player.Player;
+import NE.card.agriculture.AgricultureLesser;
+import NE.card.construction.ConstructionLesser;
+import NE.card.industry.IndustryLesser;
+import NE.card.school.SchoolLesser;
 
 public class Board {
     private Deck deck;
     private List<Card> buildings = new ArrayList<>();
+    private List<Card> trash = new ArrayList<>();
     private int gdp = 0;
 
     public Board(int deckcards) {
         this.deck = new Deck(deckcards);
-        this.buildings.add(new AgricultureCard(0, "agri", 0, 0));
-        this.buildings.add(new DrawCard(0, "draw", 0, 0));
-        this.buildings.add(new SchoolCard(0, "school", 0, 0));
-        // this.buildings.add(new BuilderCard(0, "builder", 0, 0));
+        this.buildings.add(new IndustryLesser());
+        this.buildings.add(new ConstructionLesser());
+        this.buildings.add(new SchoolLesser());
+        this.buildings.add(new AgricultureLesser());
 
     }
 
-    public void workOnCard(int option, Deck deck, Player player) {
-        this.buildings.get(option).work(player, this, deck);
-    }
+    // public void workOnCard(int option, Deck deck, Player player) {
+    // this.buildings.get(option).work(player, this, deck);
+    // }
 
     public void ban() {
         for (int i = this.buildings.size() - 1; i >= 0; i--) {
@@ -58,6 +59,22 @@ public class Board {
         for (Card card : buildings) {
             card.setWorked(false);
         }
+    }
+
+    public Deck getDeck() {
+        return deck;
+    }
+
+    public void setDeck(Deck deck) {
+        this.deck = deck;
+    }
+
+    public List<Card> getTrash() {
+        return trash;
+    }
+
+    public void setTrash(List<Card> trash) {
+        this.trash = trash;
     }
 
 }

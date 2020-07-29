@@ -8,4 +8,12 @@ public class AIPlayer extends Player {
         this.brain = brain;
     }
 
+    public IThinkable getBrain() {
+        return brain;
+    }
+
+    public void setBrain(IThinkable brain) {
+        this.brain = brain;
+    }
+
 }

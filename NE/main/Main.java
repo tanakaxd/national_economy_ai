@@ -15,9 +15,9 @@ public class Main {
         // Deck deck = new Deck(deckCards);
         // Player player = new Player();
 
-        GameManager gameManager = new GameManager();
-        gameManager.init();
-        gameManager.run();
+        // GameManager gameManager = new GameManager();
+        // gameManager.init();
+        GameManager.getInstance().run();
 
     }
 

@@ -4,13 +4,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-import NE.card.AgricultureCard;
 import NE.card.Card;
+import NE.card.agriculture.AgricultureCard;
+import NE.card.agriculture.AgricultureLesser;
+import NE.card.construction.ConstructionLesser;
+import NE.card.industry.IndustryLesser;
 
 public class Deck {
     private List<Card> cards = new LinkedList<>();
-    // private List<Integer> cards = new LinkedList<>();
-
     private int amounts;
 
     public Deck(int amounts) {
@@ -22,27 +23,24 @@ public class Deck {
         if (this.cards.size() == 0) {
             init();
         }
-        // return CardDataBase.getCardForID(this.cards.get(new
-        // Random().nextInt(this.cards.size())));
         return this.cards.remove(0);
-
     }
 
     private void init() {
-        // for (int i = 0; i < CardDataBase.getCards().size(); i++) {
-        // for (int j = 0; j < CardDataBase.getCards().get(i).getAmounts(); j++) {
-        // this.cards.add(CardDataBase.getCards().get(i).getID());
-        // }
-        // }
+
         while (this.cards.size() < this.amounts) {
-            int id = new Random().nextInt(2);
+            int id = new Random().nextInt(3);
             switch (id) {
                 case 0:
-                    this.cards.add(new AgricultureCard(0, "a", 1, 3));
+                    this.cards.add(new AgricultureLesser());
                     break;
                 case 1:
-                    this.cards.add(new AgricultureCard(1, "b", 3, 3));
+                    this.cards.add(new ConstructionLesser());
                     break;
+                case 2:
+                    this.cards.add(new IndustryLesser());
+                    break;
+
                 default:
                     System.out.println("invalid id");
             }
