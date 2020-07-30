@@ -1,7 +1,10 @@
 package NE.main;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import NE.board.Board;
 import NE.card.Card;
@@ -15,7 +18,7 @@ import NE.player.Worker;
 
 public class GameManager {
 
-    private int maxTurn = 9;
+    private int maxTurn = 2;
     private int currentTurn = 1;
     private int cardsInDeck = 40;
     private boolean isSinglePlay;
@@ -31,6 +34,7 @@ public class GameManager {
         // this.players.add(new AIPlayer(new TAI()));
         this.players.add(new AIPlayer(this.board, new RandomAI()));
         this.players.add(new AIPlayer(this.board, new RandomAI()));
+        // this.players.add(new AIPlayer(this.board, new RandomAI()));
 
         // playerにカードを配る TODO
 
@@ -66,10 +70,8 @@ public class GameManager {
             this.board.unbanAll();
 
             for (Player player : this.players) {
-                // 個人所有の建物を労働可能にする
-                player.unbanAll();
-                // 全プレイやーの労働者を労働可能にする
-                player.refreshWorkers();
+                player.initForTurn();
+
             }
 
             // 親プレイヤーから始める
@@ -91,6 +93,8 @@ public class GameManager {
                 System.out.println();
                 System.out.println("Name: " + currentPlayer.getName());
                 System.out.println();
+                System.out.println("ActionCounts: " + currentPlayer.getActionCount());
+                System.out.println("OwnedWorkers: " + currentPlayer.getWorkers().size());
                 System.out.println("GDP: " + this.board.getGdp());
                 System.out.println("Score: " + currentPlayer.getScore());
                 System.out.println("Money: " + currentPlayer.getMoney());
@@ -108,7 +112,8 @@ public class GameManager {
                 }
 
                 // 働き済みにする
-                worker.setAlreadyWorked(true);
+                worker.setWorkable(false);
+                currentPlayer.acted();
 
                 // シングルプレイの場合は、フィールド上のカードの一番新しくかつ労働可能なカードを一枚取得し、労働不可にする
                 if (isSinglePlay) {
@@ -121,7 +126,7 @@ public class GameManager {
                 // 全プレイヤーの労働者がすでに労働しているならbreak
                 // このやり方は毎ターン二重ループを回して判定しているので重い処理
                 // 別の方法としては、上のcontinueがプレイヤー数以上続いたらbreakするという方法もある。
-                if (isAllWorkersAlreadyWorked())
+                if (isAllPlayersDone())
                     break;
             }
 
@@ -143,34 +148,55 @@ public class GameManager {
         }
 
         // ゲーム終了処理
-        // 所持物件の価値を計算する
-        // 最終スコアを計算する
+        finish();
 
     }
 
-    private boolean isAllWorkersAlreadyWorked() {
-        boolean isAllWorkersAlreadyWorked = true;
+    private void finish() {
+        // 所持物件の価値を計算する
+        for (Player player : this.players) {
+            player.calcScore();
+        }
+
+        List<Player> rankings = this.players.stream().sorted(Comparator.comparing(Player::getScore).reversed())
+                .collect(Collectors.toList());
+
+        // 最終スコアを計算する
+        System.out.println();
+        System.out.println("Game Finished Successfully");
+        System.out.println("HERE IS RANKING");
+        System.out.println();
+        for (int i = 0; i < rankings.size(); i++) {
+            int rank = i + 1;
+            System.out.println(rank + ": " + rankings.get(i).getName() + " score=" + rankings.get(i).getScore());
+        }
+    }
+
+    private boolean isAllPlayersDone() {
+        boolean isAllPlayersDone = true;
         // TODO stream
         for (Player player : this.players) {
-            for (Worker worker : player.getWorkers()) {
-                if (!worker.isAlreadyWorked())
-                    return false;
-            }
+            // for (Worker worker : player.getWorkers()) {
+            // if (worker.isWorkable())
+            // return false;
+            // }
+            if (player.isActive())
+                return false;
         }
-        return isAllWorkersAlreadyWorked;
+        return isAllPlayersDone;
     }
 
     private void pay(Player player) {
         // 労働者一人当たりの賃金
         int wages;
         if (this.currentTurn <= 2) {
+            wages = 2;
+        } else if (this.currentTurn <= 5) {
             wages = 3;
-        } else if (this.currentTurn <= 4) {
+        } else if (this.currentTurn <= 7) {
             wages = 4;
-        } else if (this.currentTurn <= 6) {
-            wages = 5;
         } else {
-            wages = 6;
+            wages = 5;
         }
 
         // トータル賃金
@@ -229,12 +255,15 @@ public class GameManager {
             int optionB = Display.scanNextInt(area.size());
 
             // 選択されたカードを取得
-            Card card = this.board.getBuildings().get(optionB);
+            Card card = area.get(optionB);
             // カードに応じて、使用したときの選択肢の入力を求めリストとして受け取る
             List<Integer> options = card.promptChoice(currentPlayer, this.board);
 
             // カードを使用する
-            done = card.work(currentPlayer, this.board, options);
+            done = card.apply(currentPlayer, this.board, options);
+            if (!done) {
+                System.out.println("丸投げだけど、何らかの理由で使用できません");
+            }
         } while (!done);
     }
 
@@ -242,12 +271,23 @@ public class GameManager {
 
         AIPlayer player = (AIPlayer) currentPlayer;
         boolean done = false;
-        int stucked = -1;
+        int stuck = -1;
         do {
-            stucked++;
-            // Humanplyaerの時と違って、どのフィールドで、どのカードを使うかも含めてreturnしてくる
-            List<Integer> options = player.getBrain().think(player, this.board, stucked);
-            System.out.println(options);
+            stuck++;
+            if (stuck >= 3) {
+                // 強制で鉱山を使わせる
+                // このブロックを下に置くとcontinueの時に実行されず無限ループ
+                // TODO
+                System.out.println("stuck...");
+                System.out.println("forced-piloting initiated");
+                List<Integer> options = new ArrayList<>();
+                done = this.board.getBuildings().get(0).apply(player, this.board, options);
+                break;
+            }
+
+            // Humanplyaerの時と違って、どのエリアで、どのカードを使うかも含めてreturnしてくる
+            List<Integer> options = player.getBrain().think(player, this.board, stuck);
+            System.out.println("AI's decision: " + options);
 
             int areaChoice = options.remove(0);
             List<Card> area;
@@ -268,29 +308,20 @@ public class GameManager {
                 continue;
             }
 
-            // 選択されたフィールドから選択されたカードを取得
+            // 選択されたエリアからカードを取得
             Card card = area.get(options.remove(0));
 
             System.out.println(options);
             System.out.println(card);
 
             // カードを使用する
-            done = card.work(player, this.board, options);
+            done = card.apply(player, this.board, options);
 
-            System.out.println(done);
-            stucked++;
+            System.out.println("AttemptSuccess? " + done);
             try {
                 Thread.sleep(250);
             } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
                 // e.printStackTrace();
-            }
-
-            if (stucked >= 3) {
-                // 鉱山を使わせる
-                // TODO
-                done = this.board.getBuildings().get(0).work(player, this.board, options);
-
             }
 
         } while (!done);

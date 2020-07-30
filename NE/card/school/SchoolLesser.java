@@ -18,11 +18,11 @@ public class SchoolLesser extends SchoolCard {
     }
 
     @Override
-    public boolean work(Player player, Board board, List<Integer> options) {
+    public boolean apply(Player player, Board board, List<Integer> options) {
         if (this.isWorked)
             return false;
 
-        boolean success = player.addWorker(true);
+        boolean success = player.addWorker(false);
         if (!success)
             return false;
 

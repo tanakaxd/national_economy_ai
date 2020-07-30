@@ -1,10 +1,8 @@
 package NE.card.agriculture;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import NE.board.Board;
-import NE.board.Deck;
 import NE.card.Card;
 import NE.card.CommodityCard;
 import NE.player.Player;
@@ -18,7 +16,7 @@ public abstract class AgricultureCard extends Card {
     }
 
     @Override
-    public boolean work(Player player, Board board, List<Integer> options) {
+    public boolean apply(Player player, Board board, List<Integer> options) {
         if (this.isWorked)
             return false;
         for (int i = 0; i < this.commodities; i++) {

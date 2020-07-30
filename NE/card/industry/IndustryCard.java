@@ -18,7 +18,7 @@ public abstract class IndustryCard extends Card {
     }
 
     @Override
-    public boolean work(Player player, Board board, List<Integer> options) {
+    public boolean apply(Player player, Board board, List<Integer> options) {
 
         try {
             List<Card> hands = player.getHands();
@@ -26,9 +26,7 @@ public abstract class IndustryCard extends Card {
             if (hands.size() < this.discards || this.isWorked)
                 return false;
 
-            for (int i = 0; i < this.discards; i++) {
-                player.discard(board, options.get(i));
-            }
+            player.discard(board, options, this.discards);
 
             for (int i = 0; i < this.draws; i++) {
                 player.draw(board);
@@ -47,6 +45,8 @@ public abstract class IndustryCard extends Card {
     @Override
     public List<Integer> promptChoice(Player player, Board board) {
         List<Integer> options = new ArrayList<>();
+        Display.printChoices(player.getHands());
+
         System.out.println("捨てるカードを" + this.discards + "枚選んでください");
         for (int i = 0; i < this.discards; i++) {
             options.add(Display.scanNextInt(player.getHands().size()));

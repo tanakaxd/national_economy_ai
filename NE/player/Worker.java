@@ -2,22 +2,22 @@ package NE.player;
 
 public class Worker {
 
-    private boolean alreadyWorked;
+    private boolean isWorkable;
 
     public Worker() {
-        this.alreadyWorked = true;
+        this.isWorkable = false;
     }
 
-    public Worker(boolean alreadyWorked) {
-        this.alreadyWorked = alreadyWorked;
+    public Worker(boolean isWorkable) {
+        this.isWorkable = isWorkable;
     }
 
-    public boolean isAlreadyWorked() {
-        return alreadyWorked;
+    public boolean isWorkable() {
+        return isWorkable;
     }
 
-    public void setAlreadyWorked(boolean alreadyWorked) {
-        this.alreadyWorked = alreadyWorked;
+    public void setWorkable(boolean isWorkable) {
+        this.isWorkable = isWorkable;
     }
 
 }

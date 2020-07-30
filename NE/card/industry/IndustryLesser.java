@@ -1,9 +1,10 @@
 package NE.card.industry;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import NE.board.Board;
-import NE.card.Card;
+import NE.display.Display;
 import NE.player.Player;
 
 public class IndustryLesser extends IndustryCard {
@@ -22,22 +23,13 @@ public class IndustryLesser extends IndustryCard {
         this.discards = 0;
     }
 
+    // 特殊
     @Override
-    public boolean work(Player player, Board board, List<Integer> options) {
+    public boolean apply(Player player, Board board, List<Integer> options) {
 
         try {
-            List<Card> hands = player.getHands();
-
-            if (hands.size() < this.discards || this.isWorked)
-                return false;
-
-            for (int i = 0; i < this.discards; i++) {
-                player.discard(board, options.get(i));
-            }
-
-            for (int i = 0; i < this.draws; i++) {
-                player.draw(board);
-            }
+            // player.discard(board, options, this.discards);
+            player.draw(board);
             return true;
 
         } catch (IndexOutOfBoundsException e) {
@@ -45,6 +37,13 @@ public class IndustryLesser extends IndustryCard {
             return false;
         }
 
+    }
+
+    // 特殊
+    @Override
+    public List<Integer> promptChoice(Player player, Board board) {
+        List<Integer> options = new ArrayList<>();
+        return options;
     }
 
 }

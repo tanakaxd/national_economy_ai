@@ -1,10 +1,8 @@
 package NE.card;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import NE.board.Board;
-import NE.board.Deck;
 import NE.player.Player;
 
 public class CommodityCard extends Card {
@@ -20,14 +18,12 @@ public class CommodityCard extends Card {
     }
 
     @Override
-    public boolean work(Player player, Board board, List<Integer> options) {
-        // TODO Auto-generated method stub
+    public boolean apply(Player player, Board board, List<Integer> options) {
         return false;
     }
 
     @Override
     public List<Integer> promptChoice(Player player, Board board) {
-        // TODO Auto-generated method stub
         return null;
     }
 

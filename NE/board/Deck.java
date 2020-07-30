@@ -57,16 +57,17 @@ public class Deck {
 
     }
 
+    public void addCard(Card c) {
+        this.cards.add(c);
+    }
+
+    // setter&getter
     public List<Card> getCards() {
         return cards;
     }
 
     public void setCards(List<Card> cards) {
         this.cards = cards;
-    }
-
-    public void addCard(Card c) {
-        this.cards.add(c);
     }
 
 }

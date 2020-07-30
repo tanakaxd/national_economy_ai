@@ -1,10 +1,8 @@
 package NE.card;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import NE.board.Board;
-import NE.board.Deck;
 import NE.player.Player;
 
 public abstract class Card {
@@ -26,7 +24,7 @@ public abstract class Card {
 
     }
 
-    public abstract boolean work(Player player, Board board, List<Integer> options);
+    public abstract boolean apply(Player player, Board board, List<Integer> options);
 
     public abstract List<Integer> promptChoice(Player player, Board board);
 

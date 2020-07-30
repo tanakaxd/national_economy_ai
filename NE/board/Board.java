@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import NE.card.Card;
-import NE.card.agriculture.AgricultureLesser;
 import NE.card.construction.ConstructionLesser;
 import NE.card.industry.IndustryLesser;
+import NE.card.market.MarketLesser;
 import NE.card.school.SchoolLesser;
 
 public class Board {
@@ -19,14 +19,12 @@ public class Board {
         this.deck = new Deck(cardsInDeck);
         this.buildings.add(new IndustryLesser());
         this.buildings.add(new ConstructionLesser());
+        this.buildings.add(new ConstructionLesser());
+        this.buildings.add(new ConstructionLesser());
         this.buildings.add(new SchoolLesser());
-        this.buildings.add(new AgricultureLesser());
+        this.buildings.add(new MarketLesser());
 
     }
-
-    // public void workOnCard(int option, Deck deck, Player player) {
-    // this.buildings.get(option).work(player, this, deck);
-    // }
 
     public void ban() {
         for (int i = this.buildings.size() - 1; i >= 0; i--) {
@@ -51,18 +49,20 @@ public class Board {
         this.gdp += amount;
     }
 
+    public void unbanAll() {
+        for (Card card : buildings) {
+            card.setWorked(false);
+        }
+    }
+
+    // setter&getter
+
     public int getGdp() {
         return gdp;
     }
 
     public void setGdp(int gdp) {
         this.gdp = gdp;
-    }
-
-    public void unbanAll() {
-        for (Card card : buildings) {
-            card.setWorked(false);
-        }
     }
 
     public Deck getDeck() {

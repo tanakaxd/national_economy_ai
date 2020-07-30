@@ -1,7 +1,6 @@
 package NE.card.construction;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,11 +26,9 @@ public class ConstructionMedium extends ConstructionCard {
     }
 
     @Override
-    public boolean work(Player player, Board board, List<Integer> options) {
+    public boolean apply(Player player, Board board, List<Integer> options) {
         try {
             List<Card> hands = player.getHands();
-
-            System.out.println("aaaaaaaaa");
 
             if (hands.size() < this.minHands || this.isWorked)
                 return false;
@@ -40,35 +37,16 @@ public class ConstructionMedium extends ConstructionCard {
             int num = (int) options.get(0);
             Card cardToBuild = hands.get(num);
             int cost = cardToBuild.getCost();
-            System.out.println("aaaaaaaaa");
 
             if (cost > hands.size() - this.amountsToBuild || !cardToBuild.isBuildable())
                 return false;
 
-            System.out.println("aaaaaaaaa");
+            // 建てるカードと捨てるカードがかぶらないように
+            List<Integer> modifiedOptions = options.stream().distinct().skip(1).collect(Collectors.toList());
 
-            // コストを支払う
-            // まず捨てるカード全部の参照を取得したい
-            List<Card> cardsToDiscard = new ArrayList<>();
-            // 建てるカードと被らないようにする
-            List<Integer> modifiedOptions = options.stream().skip(1).distinct().filter(integer -> integer != num)
-                    .sorted(Comparator.reverseOrder()).collect(Collectors.toList());
-
-            System.out.println("constructionlesser50" + modifiedOptions);
-            // Display.myLog(modifiedOptions.toString());
-
-            for (Integer integer : modifiedOptions) {
-                cardsToDiscard.add(hands.get(integer));
-            }
-
-            // コストが足りているかチェック
-            if (cardsToDiscard.size() < cost)
+            if (!player.discard(board, modifiedOptions, cost))
                 return false;
 
-            // 捨てる
-            for (int i = 0; i < cost; i++) {
-                player.discard(board, cardsToDiscard.get(i));
-            }
             // 建てる
             player.build(cardToBuild);
             // draw
@@ -78,6 +56,8 @@ public class ConstructionMedium extends ConstructionCard {
             return true;
 
         } catch (IndexOutOfBoundsException e) {
+            // 一部分の処理が実行された後、そこだけ取り消しができない可能性がある
+            // 本来は通過してはいけないブロック TODO
             e.printStackTrace();
             return false;
         }
@@ -87,11 +67,13 @@ public class ConstructionMedium extends ConstructionCard {
     @Override
     public List<Integer> promptChoice(Player player, Board board) {// TODO 拡張性のため残してある記述あり
         List<Integer> options = new ArrayList<>();
+        Display.printChoices(player.getHands());
         System.out.println("建設するカードを選んでください");
         int option1 = Display.scanNextInt(player.getHands().size());
         options.add(option1);
         int cost = player.getHands().get(option1).getCost();
         System.out.println("捨てるカードを" + cost + "枚選んでください");
+
         for (int i = 0; i < cost; i++) {
             options.add(Display.scanNextInt(player.getHands().size()));
         }
