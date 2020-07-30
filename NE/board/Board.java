@@ -15,8 +15,8 @@ public class Board {
     private List<Card> trash = new ArrayList<>();
     private int gdp = 0;
 
-    public Board(int deckcards) {
-        this.deck = new Deck(deckcards);
+    public Board(int cardsInDeck) {
+        this.deck = new Deck(cardsInDeck);
         this.buildings.add(new IndustryLesser());
         this.buildings.add(new ConstructionLesser());
         this.buildings.add(new SchoolLesser());
@@ -45,6 +45,10 @@ public class Board {
 
     public void setBuildings(List<Card> buildings) {
         this.buildings = buildings;
+    }
+
+    public void addGdp(int amount) {
+        this.gdp += amount;
     }
 
     public int getGdp() {

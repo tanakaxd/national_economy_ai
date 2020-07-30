@@ -5,10 +5,11 @@ import java.util.List;
 import java.util.Random;
 
 import NE.card.Card;
-import NE.card.agriculture.AgricultureCard;
 import NE.card.agriculture.AgricultureLesser;
-import NE.card.construction.ConstructionLesser;
-import NE.card.industry.IndustryLesser;
+import NE.card.construction.ConstructionMedium;
+import NE.card.industry.IndustryMedium;
+import NE.card.market.MarketMedium;
+import NE.main.GameManager;
 
 public class Deck {
     private List<Card> cards = new LinkedList<>();
@@ -16,29 +17,33 @@ public class Deck {
 
     public Deck(int amounts) {
         this.amounts = amounts;
-        init();
+        // Init();
+        randomInit();
     }
 
     public Card draw() {
         if (this.cards.size() == 0) {
-            init();
+            GameManager.getInstance().refreshDeck();
         }
-        return this.cards.remove(0);
+        return this.cards.remove(new Random().nextInt(this.cards.size()));
     }
 
-    private void init() {
+    private void randomInit() {
 
         while (this.cards.size() < this.amounts) {
-            int id = new Random().nextInt(3);
+            int id = new Random().nextInt(4);
             switch (id) {
                 case 0:
                     this.cards.add(new AgricultureLesser());
                     break;
                 case 1:
-                    this.cards.add(new ConstructionLesser());
+                    this.cards.add(new ConstructionMedium());
                     break;
                 case 2:
-                    this.cards.add(new IndustryLesser());
+                    this.cards.add(new IndustryMedium());
+                    break;
+                case 3:
+                    this.cards.add(new MarketMedium());
                     break;
 
                 default:
@@ -48,12 +53,20 @@ public class Deck {
         }
     }
 
+    private void Init() {
+
+    }
+
     public List<Card> getCards() {
         return cards;
     }
 
     public void setCards(List<Card> cards) {
         this.cards = cards;
+    }
+
+    public void addCard(Card c) {
+        this.cards.add(c);
     }
 
 }

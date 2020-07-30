@@ -10,17 +10,17 @@ import NE.card.Card;
 import NE.display.Display;
 import NE.player.Player;
 
-public class ConstructionLesser extends ConstructionCard {
+public class ConstructionMedium extends ConstructionCard {
 
-    public ConstructionLesser() {
-        this.id = 10;
+    public ConstructionMedium() {
+        this.id = 11;
         this.category = CardCategory.CONSTRUCTION;
-        this.name = "建設小";
-        this.cost = 1;
-        this.value = 0;
+        this.name = "建設中";
+        this.cost = 2;
+        this.value = 10;
         this.isWorked = false;
-        this.isBuildable = false;
-        this.isCommons = true;
+        this.isBuildable = true;
+        this.isCommons = false;
 
         this.minHands = 1;
         this.amountsToBuild = 1;
@@ -28,10 +28,6 @@ public class ConstructionLesser extends ConstructionCard {
 
     @Override
     public boolean work(Player player, Board board, List<Integer> options) {
-        // template pattern を使う場合
-        // 共通している処理は、最初と最後の処理
-        // 最初のやつは、立てられるカードがない時等のreturn false
-        // 最後のやつはコスト分のカードを捨てる処理
         try {
             List<Card> hands = player.getHands();
 
@@ -75,6 +71,9 @@ public class ConstructionLesser extends ConstructionCard {
             }
             // 建てる
             player.build(cardToBuild);
+            // draw
+            player.draw(board);
+
             this.isWorked = true;
             return true;
 

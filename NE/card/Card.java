@@ -9,16 +9,18 @@ import NE.player.Player;
 
 public abstract class Card {
     public enum CardCategory {
-        CONSTRUCTION, AGRICULTURE, FACILITY, INDUSTRY, EDUCATION, COMMODITY
+        CONSTRUCTION, AGRICULTURE, FACILITY, INDUSTRY, EDUCATION, COMMODITY, MARKET
     }
 
     protected int id;
     protected CardCategory category;
     protected String name;
     protected int cost;
+    protected int value;
     protected boolean isWorked;
     protected int amountsInDeck;
     protected boolean isBuildable;
+    protected boolean isCommons;
 
     public Card() {
 
@@ -33,7 +35,7 @@ public abstract class Card {
         // return "Card [cost=" + cost + ", isWorked=" + isWorked + ", name=" + name +
         // "]";
         String circle = isWorked ? "●" : "○";
-        return String.format("[%s: cost=%d circle]", this.name, this.cost, circle);
+        return String.format("[%d %s $%d %s]", this.cost, this.name, this.value, circle);
 
         // StringBuilder sb = new StringBuilder();
         // sb.append("Card [cost=").append(cost)
@@ -77,6 +79,30 @@ public abstract class Card {
 
     public void setAmountsInDeck(int amountsInDeck) {
         this.amountsInDeck = amountsInDeck;
+    }
+
+    public CardCategory getCategory() {
+        return category;
+    }
+
+    public void setCategory(CardCategory category) {
+        this.category = category;
+    }
+
+    public int getValue() {
+        return value;
+    }
+
+    public void setValue(int value) {
+        this.value = value;
+    }
+
+    public boolean isBuildable() {
+        return isBuildable;
+    }
+
+    public void setBuildable(boolean isBuildable) {
+        this.isBuildable = isBuildable;
     }
 
     // public abstract Card clone();

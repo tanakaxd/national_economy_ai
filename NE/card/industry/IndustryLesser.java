@@ -12,9 +12,11 @@ public class IndustryLesser extends IndustryCard {
         this.id = 20;
         this.category = CardCategory.INDUSTRY;
         this.name = "工場小";
-        this.isWorked = false;
         this.cost = 1;
-        this.isBuildable = true;
+        this.value = 0;
+        this.isWorked = false;
+        this.isBuildable = false;
+        this.isCommons = true;
 
         this.draws = 1;
         this.discards = 0;

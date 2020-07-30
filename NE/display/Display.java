@@ -1,7 +1,11 @@
 package NE.display;
 
+import java.util.InputMismatchException;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
+
+import javax.xml.catalog.Catalog;
 
 public class Display {
     public static <T> void printChoices(List<T> l) {
@@ -21,24 +25,40 @@ public class Display {
     }
 
     public static int scanNextInt(int amounts) {
-        int option;
+        if (amounts <= 0) {
+            System.out.println("invalid scan");
+            return -1;
+        }
+
+        int option = 0;
         boolean ok = false;
         do {
-            option = new Scanner(System.in).nextInt();
-            if (option >= 1 && option <= amounts) {
+            try {
+                option = new Scanner(System.in).nextInt();
+                if (option >= 1 && option <= amounts) {
 
-                ok = true;
-            } else {
-                System.out.println("***無効な入力です。もう一回やってみて***");
+                    ok = true;
+                } else {
+                    System.out.println("***無効な入力です。もう一回やってみて***");
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("半角で入力してください");
             }
         } while (!ok);
-
         return option - 1;
+
     }
 
     public static void myLog(String s) {
         // String className = this.getClass().getName();
         System.out.print(Thread.currentThread().getStackTrace()[2].getLineNumber());
         System.out.println(s);
+    }
+
+    public static int myRandom(int maxExclusive) {
+        if (maxExclusive == 0) {
+            return 0;
+        }
+        return new Random().nextInt(maxExclusive);
     }
 }

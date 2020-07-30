@@ -1,18 +1,25 @@
 package NE.player;
 
+import NE.board.Board;
+
 public class AIPlayer extends Player {
 
-    private IThinkable brain;
+    private IAI brain;
 
-    public AIPlayer(IThinkable brain) {
+    private static int id = 1;
+
+    public AIPlayer(Board board, IAI brain) {
+        super(board);
         this.brain = brain;
+        this.name = "AI-" + id + ":brain=" + this.brain.getClass().getName();
+        id++;
     }
 
-    public IThinkable getBrain() {
+    public IAI getBrain() {
         return brain;
     }
 
-    public void setBrain(IThinkable brain) {
+    public void setBrain(IAI brain) {
         this.brain = brain;
     }
 

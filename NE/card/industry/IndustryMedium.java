@@ -12,9 +12,11 @@ public class IndustryMedium extends IndustryCard {
         this.id = 21;
         this.category = CardCategory.INDUSTRY;
         this.name = "工場中";
-        this.isWorked = false;
         this.cost = 2;
+        this.value = 12;
+        this.isWorked = false;
         this.isBuildable = true;
+        this.isCommons = false;
 
         this.draws = 4;
         this.discards = 2;
@@ -33,7 +35,7 @@ public class IndustryMedium extends IndustryCard {
                 return false;
 
             for (int i = 0; i < this.discards; i++) {
-                player.discard(board, options.get(i));
+                player.discard(board, options.get(i));// TODO outofbounds
             }
 
             for (int i = 0; i < this.draws; i++) {

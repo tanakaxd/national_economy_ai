@@ -8,7 +8,7 @@ import NE.player.Player;
 public class SchoolLesser extends SchoolCard {
 
     public SchoolLesser() {
-        this.id = 30;
+        this.id = 40;
         this.category = CardCategory.EDUCATION;
         this.name = "学校小";
         this.isWorked = false;
@@ -22,12 +22,12 @@ public class SchoolLesser extends SchoolCard {
         if (this.isWorked)
             return false;
 
-        boolean success = player.addWorker();
+        boolean success = player.addWorker(true);
         if (!success)
             return false;
 
         this.isWorked = true;
-        return false;
+        return true;
     }
 
     @Override
