@@ -13,7 +13,7 @@ public interface IAI {
     // ターン終了時に捨てるカードを選ぶ。戻り値は手札内のindex
     public abstract int discard(Player self, Board board);
 
-    // public abstract int discard(Player self, Board board, int indexesNotAllowed);
+    public abstract int discard(Player self, Board board, int indexesNotAllowed);
 
     // 賃金支払いのため売却する物件を選ぶ。戻り値は自物件内のindex
     public abstract int sell(Player self, Board board);
