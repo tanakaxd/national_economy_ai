@@ -8,24 +8,26 @@ import java.util.stream.Collectors;
 
 import NE.board.Board;
 import NE.card.Card;
+import NE.main.GameManager;
 
 public abstract class Player {
+
     protected List<Card> hands = new LinkedList<>();
     protected List<Card> buildings = new ArrayList<>();
-
-    // TODO trashとdeck
-
     protected List<Worker> workers = new ArrayList<>();
+    // TODO trashとdeck
+    // protected List<Card> trash;
+
+    protected String name;
     protected int initialWorkers = 2;
-    protected int workersCount = 2;
+    protected int initialHands = 3;
     protected int money;
     protected int debt = 0;
+    protected int victoryPoint = 0;
     protected int score = 0;
     protected int handLimits = 5;
-    protected int initialHands = 3;
     protected int workersLimits = 5;
     protected int actionCount = 1;
-    protected String name;
 
     protected static int initialMoney = 5;
 
@@ -33,7 +35,7 @@ public abstract class Player {
         this.money = initialMoney;
         initialMoney++;
 
-        for (int i = 0; i < initialHands; i++) {
+        for (int i = 0; i < this.initialHands; i++) {
             draw(board);
         }
 
@@ -44,58 +46,13 @@ public abstract class Player {
         // TODO
         // trash等の参照を取得する
         // playerとboardの結びつきはかなり強い。両者とも他方の存在なしには意味を失う。
-        // つまり、compositionが妥当。
+        // compositionが妥当かもしれない
 
     }
 
-    // public void discard(Board board, int index) {//
-    // 一つずつindexをもらうとremoveでずれてoutofboundsになる
-    // board.getTrash().add(this.hands.remove(index));// TODO
-    // System.out.println("discard");
-    // System.out.println(board.getTrash());
-    // }
-    public boolean discard(Board board, List<Integer> indexesToDiscard, int cost) {
-
-        // TODO humanとaiを分ける処理、それをカードの方に書かずここで一括して管理したい
-        // まず捨てるカード全部の参照を取得したい
-        List<Card> cardsToDiscard = new ArrayList<>();
-
-        List<Integer> modifiedIndexes = indexesToDiscard.stream().distinct().sorted(Comparator.reverseOrder())
-                .collect(Collectors.toList());
-
-        System.out.println("Player#discard " + modifiedIndexes);
-
-        for (Integer index : modifiedIndexes) {
-            cardsToDiscard.add(this.hands.get(index));
-        }
-
-        // コストが足りているかチェック
-        if (cardsToDiscard.size() < cost)
-            return false;
-
-        // 捨てる
-        for (int i = 0; i < cost; i++) {
-            board.getTrash().add(cardsToDiscard.get(i));
-            this.hands.remove(cardsToDiscard.get(i));
-        }
-        // System.out.println("discard");
-        // System.out.println(board.getTrash());
-
-        return true;
-    }
-
-    // public void promptDiscard(Board board, int cost) {
-    // List<Integer> indexesToDiscard = new ArrayList<>();
-    // Display.printChoices(hands);
-    // int option = Display.scanNextInt(hands.size());
-    // }
-
-    public void discard(Board board, Card cardToDiscard) {
-        board.getTrash().add(cardToDiscard);
-        this.hands.remove(cardToDiscard);
-        // System.out.println("discard");
-        // System.out.println(board.getTrash());
-    }
+    // TODO humanとaiを分ける処理、それをカードの方に書かずここで一括して管理したい
+    // あるいはAIPlayerでoverrideする方がよい
+    public abstract boolean discard(Board board, List<Integer> indexesToDiscard, int cost);
 
     public void build(int index) {
         this.buildings.add(this.hands.remove(index));
@@ -107,7 +64,7 @@ public abstract class Player {
     }
 
     public void draw(Board board) {
-        this.hands.add(board.getDeck().draw());
+        this.hands.add(board.draw());
     }
 
     public boolean isActive() {
@@ -119,14 +76,21 @@ public abstract class Player {
     }
 
     public void sellBuildings(Board board, Card cardToSell) {
-        this.money += cardToSell.getValue();
+        if (GameManager.getInstance().isSinglePlay()) {
+            this.money += cardToSell.getValue() / 2;
+        } else {
+            this.money += cardToSell.getValue();
+        }
         board.getBuildings().add(cardToSell);
         this.buildings.remove(cardToSell);
     }
 
     public void sellBuildings(Board board, int index) {
-        // TODO singlePlay
-        this.money += this.buildings.get(index).getValue();
+        if (GameManager.getInstance().isSinglePlay()) {
+            this.money += this.buildings.get(index).getValue() / 2;
+        } else {
+            this.money += this.buildings.get(index).getValue();
+        }
         board.getBuildings().add(this.buildings.remove(index));
     }
 
@@ -137,7 +101,7 @@ public abstract class Player {
         return true;
     }
 
-    public void unbanAll() {
+    public void refreshBuildings() {
         for (Card card : this.buildings) {
             card.setWorked(false);
         }
@@ -151,10 +115,10 @@ public abstract class Player {
 
     public void payMoney(Board board, int totalWages) {
         int payment = Math.min(this.money, totalWages);
-        System.out.println("payment:" + payment);
+        System.out.println(this.name + " payed: $" + payment);
         board.addGdp(payment);
         this.money -= totalWages;
-        if (money < 0) {
+        if (this.money < 0) {
             this.debt += this.money;
             this.money = 0;
         }
@@ -165,7 +129,13 @@ public abstract class Player {
         for (Card card : buildings) {
             totalRealEstateValue += card.getValue();
         }
-        this.score = totalRealEstateValue + this.money + (this.debt * 3);
+        this.score = totalRealEstateValue + this.money + (this.debt * 3) + calcVictoryPointsScore();
+    }
+
+    private int calcVictoryPointsScore() {
+        int ex = this.victoryPoint % 3;
+        int score = this.victoryPoint / 3 * 10 + ex;
+        return score;
     }
 
     public Worker getWorkableWorker() {
@@ -184,7 +154,7 @@ public abstract class Player {
 
     public void initForTurn() {
         // 個人所有の建物を労働可能にする
-        unbanAll();
+        refreshBuildings();
         // 全プレイやーの労働者を労働可能にする
         refreshWorkers();
         // 行動回数カウンターをリセットする
@@ -254,14 +224,6 @@ public abstract class Player {
         this.buildings = buildings;
     }
 
-    public int getWorkersCount() {
-        return workersCount;
-    }
-
-    public void setWorkersCount(int workersCount) {
-        this.workersCount = workersCount;
-    }
-
     public int getMoney() {
         return money;
     }
@@ -300,6 +262,14 @@ public abstract class Player {
 
     public void setWorkersLimits(int workersLimits) {
         this.workersLimits = workersLimits;
+    }
+
+    public int getVictoryPoint() {
+        return victoryPoint;
+    }
+
+    public void setVictoryPoint(int victoryPoint) {
+        this.victoryPoint = victoryPoint;
     }
 
     // #endregion

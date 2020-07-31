@@ -2,8 +2,10 @@ package NE.board;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import NE.card.Card;
+import NE.card.Card.CardCategory;
 import NE.card.construction.ConstructionLesser;
 import NE.card.industry.IndustryLesser;
 import NE.card.market.MarketLesser;
@@ -23,7 +25,22 @@ public class Board {
         this.buildings.add(new ConstructionLesser());
         this.buildings.add(new SchoolLesser());
         this.buildings.add(new MarketLesser());
+    }
 
+    public void refreshDeck() {
+        System.out.println("deck refreshed!");
+        List<Card> filteredTrash = this.trash.stream().filter(c -> c.getCategory() != CardCategory.COMMODITY)
+                .collect(Collectors.toList());
+        while (filteredTrash.size() > 0) {
+            this.deck.addCard(filteredTrash.remove(0));
+        }
+    }
+
+    public Card draw() {
+        if (this.deck.getDeckSize() == 0) {
+            refreshDeck();
+        }
+        return this.deck.draw();
     }
 
     public void ban() {
@@ -37,14 +54,6 @@ public class Board {
         }
     }
 
-    public List<Card> getBuildings() {
-        return buildings;
-    }
-
-    public void setBuildings(List<Card> buildings) {
-        this.buildings = buildings;
-    }
-
     public void addGdp(int amount) {
         this.gdp += amount;
     }
@@ -55,7 +64,11 @@ public class Board {
         }
     }
 
-    // setter&getter
+    // #region setter&getter
+
+    public List<Card> getBuildings() {
+        return buildings;
+    }
 
     public int getGdp() {
         return gdp;
@@ -69,16 +82,9 @@ public class Board {
         return deck;
     }
 
-    public void setDeck(Deck deck) {
-        this.deck = deck;
-    }
-
     public List<Card> getTrash() {
         return trash;
     }
-
-    public void setTrash(List<Card> trash) {
-        this.trash = trash;
-    }
+    // #endregion
 
 }

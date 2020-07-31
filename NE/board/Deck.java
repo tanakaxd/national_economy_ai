@@ -13,26 +13,21 @@ import NE.main.GameManager;
 
 public class Deck {
     private List<Card> cards = new LinkedList<>();
-    private int amounts;
+    private int initialAmounts;
 
-    public Deck(int amounts) {
-        this.amounts = amounts;
-        // Init();
-        randomInit();
-    }
-
-    public Card draw() {
-        if (this.cards.size() == 0) {
-            GameManager.getInstance().refreshDeck();
+    public Deck(int initialAmounts) {
+        this.initialAmounts = initialAmounts;
+        if (GameManager.getInstance().isRandomDeck()) {
+            randomInit();
+        } else {
+            // Init();
         }
-        return this.cards.remove(new Random().nextInt(this.cards.size()));
     }
 
     private void randomInit() {
-
-        while (this.cards.size() < this.amounts) {
-            int id = new Random().nextInt(4);
-            switch (id) {
+        while (this.cards.size() < this.initialAmounts) {
+            int num = new Random().nextInt(4);
+            switch (num) {
                 case 0:
                     this.cards.add(new AgricultureLesser());
                     break;
@@ -45,11 +40,9 @@ public class Deck {
                 case 3:
                     this.cards.add(new MarketMedium());
                     break;
-
                 default:
-                    System.out.println("invalid id");
+                    System.out.println("invalid case");
             }
-
         }
     }
 
@@ -57,11 +50,15 @@ public class Deck {
 
     }
 
+    public Card draw() {
+        return this.cards.remove(new Random().nextInt(this.cards.size()));
+    }
+
     public void addCard(Card c) {
         this.cards.add(c);
     }
 
-    // setter&getter
+    // #region sg
     public List<Card> getCards() {
         return cards;
     }
@@ -69,5 +66,10 @@ public class Deck {
     public void setCards(List<Card> cards) {
         this.cards = cards;
     }
+
+    public int getDeckSize() {
+        return this.cards.size();
+    }
+    // #endregion
 
 }

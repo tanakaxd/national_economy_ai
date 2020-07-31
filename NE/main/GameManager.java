@@ -18,17 +18,24 @@ import NE.player.ai.SimpleTAI;
 
 public class GameManager {
 
-    private int maxTurn = 9;
-    private int currentTurn = 1;
-    private int cardsInDeck = 40;
-    private int waitTime = 0;
-    private int currentWage = 2;
-    private boolean isSinglePlay;
+    private static GameManager theInstance;
     private Board board;
     private List<Player> players = new ArrayList<>();
     private Player parentPlayer;
+    // private Player currentPlayer;
+    private int currentTurn = 1;
+    private int currentWage = 2;
 
-    private static GameManager theInstance;
+    // game settings
+    private int maxTurn = 9;
+    private int cardsInDeck = 40;
+    private boolean isSinglePlay;
+    private boolean isRandomDeck = true;
+
+    // AI settings
+    private boolean isAITransparent = true;
+    private int waitTime = 0;
+    private int maxStucks = 5;
 
     private GameManager() {
         this.board = new Board(this.cardsInDeck);
@@ -44,14 +51,6 @@ public class GameManager {
 
         this.parentPlayer = this.players.get(0);
 
-    }
-
-    public static GameManager getInstance() {
-        if (theInstance == null) {
-            System.out.println("GM Instantiated...");
-            theInstance = new GameManager();
-        }
-        return theInstance;
     }
 
     public void run() {
@@ -79,20 +78,7 @@ public class GameManager {
                 }
 
                 // ターンが回ってきたプレイヤーの情報を表示
-                System.out.println();
-                System.out.println("Name: " + currentPlayer.getName());
-                System.out.println();
-                System.out.println("ActionCounts: " + currentPlayer.getActionCount());
-                System.out.println("OwnedWorkers: " + currentPlayer.getWorkers().size());
-                System.out.println("GDP: " + this.board.getGdp());
-                System.out.println("Score: " + currentPlayer.getScore());
-                System.out.println("Money: " + currentPlayer.getMoney());
-                System.out.println("Hands: " + currentPlayer.getHands());
-                // 選択肢を表示
-                System.out.println("1 => 公共フィールド");
-                System.out.println(this.board.getBuildings());
-                System.out.println("2 => 自フィールド");
-                System.out.println(currentPlayer.getBuildings());
+                displayPlayerInfo(currentPlayer);
 
                 if (currentPlayer instanceof HumanPlayer) {
                     humanPlayerTurn(currentPlayer);
@@ -123,7 +109,20 @@ public class GameManager {
             terminateTurn();
         }
         // ゲーム終了処理
-        finish();
+        finishGame();
+    }
+
+    private void displayPlayerInfo(Player currentPlayer) {
+        System.out.println();
+        System.out.println("Name: " + currentPlayer.getName());
+        System.out.println();
+        System.out.println("ActionCounts: " + currentPlayer.getActionCount());
+        System.out.println("OwnedWorkers: " + currentPlayer.getWorkers().size());
+        System.out.println("GDP: " + this.board.getGdp());
+        System.out.println("Score: " + currentPlayer.getScore());
+        System.out.println("Money: " + currentPlayer.getMoney());
+        System.out.println("Hands: " + currentPlayer.getHands());
+
     }
 
     private void initTurn() {
@@ -133,15 +132,7 @@ public class GameManager {
         System.out.println();
 
         // 賃金上昇処理
-        if (this.currentTurn <= 2) {
-            this.currentWage = 2;
-        } else if (this.currentTurn <= 5) {
-            this.currentWage = 3;
-        } else if (this.currentTurn <= 7) {
-            this.currentWage = 4;
-        } else {
-            this.currentWage = 5;
-        }
+        inflateWage();
 
         // 公共の建物を建てる TODO
         // 仮仕様でランダムなカードを公共エリアに
@@ -151,8 +142,21 @@ public class GameManager {
         // 全てのフィールド上のカードを労働可能にする
         this.board.unbanAll();
 
+        // 全プレイヤー、ターン開始準備
         for (Player player : this.players) {
             player.initForTurn();
+        }
+    }
+
+    private void inflateWage() {
+        if (this.currentTurn <= 2) {
+            this.currentWage = 2;
+        } else if (this.currentTurn <= 5) {
+            this.currentWage = 3;
+        } else if (this.currentTurn <= 7) {
+            this.currentWage = 4;
+        } else {
+            this.currentWage = 5;
         }
     }
 
@@ -211,7 +215,7 @@ public class GameManager {
         }
     }
 
-    private void finish() {
+    private void finishGame() {
         // 所持物件の価値を計算する
         for (Player player : this.players) {
             player.calcScore();
@@ -235,10 +239,6 @@ public class GameManager {
         boolean isAllPlayersDone = true;
         // TODO stream
         for (Player player : this.players) {
-            // for (Worker worker : player.getWorkers()) {
-            // if (worker.isWorkable())
-            // return false;
-            // }
             if (player.isActive())
                 return false;
         }
@@ -280,6 +280,14 @@ public class GameManager {
     private void humanPlayerTurn(Player currentPlayer) {
         boolean done = false;
         do {
+            // 選択肢を表示
+            System.out.println();
+            System.out.println("1 => 公共フィールド");
+            System.out.println(this.board.getBuildings());
+            System.out.println("2 => 自フィールド");
+            System.out.println(currentPlayer.getBuildings());
+            System.out.println();
+
             // 労働者を働かせるエリアを選ぶ。まず二択
             int optionA = Display.scanNextInt(2);
             List<Card> area = new ArrayList<>();
@@ -310,31 +318,31 @@ public class GameManager {
             // カードを使用する
             done = card.apply(currentPlayer, this.board, options);
             if (!done) {
-                System.out.println("丸投げだけど、何らかの理由で使用できません");
+                System.out.println("丸投げだけど、何らかの理由で使用できません。もう一度最初から");
             }
         } while (!done);
     }
 
     private void AIPlayerTurn(Player currentPlayer) {
 
-        AIPlayer player = (AIPlayer) currentPlayer;
+        AIPlayer ai = (AIPlayer) currentPlayer;
         boolean done = false;
         int stuck = -1;
         do {
             stuck++;
-            if (stuck >= 3) {
+            if (stuck >= this.maxStucks) {
                 // 強制で鉱山を使わせる
                 // このブロックを下に置くとcontinueの時に実行されず無限ループ
                 // TODO
                 System.out.println("stuck...");
                 System.out.println("forced-piloting initiated");
                 List<Integer> options = new ArrayList<>();
-                done = this.board.getBuildings().get(0).apply(player, this.board, options);
+                this.board.getBuildings().get(0).apply(ai, this.board, options);
                 break;
             }
 
-            // Humanplyaerの時と違って、どのエリアで、どのカードを使うかも含めてreturnしてくる
-            List<Integer> options = player.getBrain().think(player, this.board, stuck);
+            // Humanplayerの時と違って、どのエリアかも一緒にリターンしてくる
+            List<Integer> options = ai.getBrain().use(ai, this.board, stuck);
             System.out.println("AI's decision: " + options);
 
             int areaChoice = options.remove(0);
@@ -358,12 +366,10 @@ public class GameManager {
 
             // 選択されたエリアからカードを取得
             Card card = area.get(options.remove(0));
-
-            System.out.println(options);
             System.out.println(card);
 
             // カードを使用する
-            done = card.apply(player, this.board, options);
+            done = card.apply(ai, this.board, options);
 
             System.out.println("AttemptSuccess? " + done);
             try {
@@ -375,6 +381,24 @@ public class GameManager {
         } while (!done);
     }
 
+    // TODO
+    public void addTrash(Card c) {
+        this.board.getTrash().add(c);
+    }
+
+    // #region setter/getter
+    public static boolean isAITransparent() {
+        return getInstance().isAITransparent;
+    }
+
+    public static GameManager getInstance() {
+        if (theInstance == null) {
+            System.out.println("GM Instantiated...");
+            theInstance = new GameManager();
+        }
+        return theInstance;
+    }
+
     public int getMaxTurn() {
         return maxTurn;
     }
@@ -383,26 +407,29 @@ public class GameManager {
         return currentTurn;
     }
 
+    public int getCurrentWage() {
+        return currentWage;
+    }
+
+    public Player getParentPlayer() {
+        return parentPlayer;
+    }
+
     public boolean isSinglePlay() {
         return isSinglePlay;
     }
 
-    public void setSinglePlay(boolean isSinglePlay) {
-        this.isSinglePlay = isSinglePlay;
+    public void setParentPlayer(Player parentPlayer) {
+        this.parentPlayer = parentPlayer;
     }
 
-    public void refreshDeck() {
-        System.out.println("deck refreshed!");
-        List<Card> trash = this.board.getTrash().stream().filter(c -> c.getCategory() != CardCategory.COMMODITY)
-                .collect(Collectors.toList());
-        while (trash.size() > 0) {
-            this.board.getDeck().addCard(trash.remove(0));
-        }
+    public int getGDP() {
+        return this.board.getGdp();
     }
 
-    // #region setter/getter
-    public int getCurrentWage() {
-        return currentWage;
+    public boolean isRandomDeck() {
+        return this.isRandomDeck;
     }
     // #endregion
+
 }

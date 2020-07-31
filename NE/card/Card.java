@@ -12,11 +12,15 @@ public abstract class Card {
 
     protected int id;
     protected CardCategory category;
+    protected boolean isAgriculture;
+    protected boolean isFactory;
+    protected boolean isFacility;
     protected String name;
+    protected String description;
     protected int cost;
     protected int value;
+    // protected int amountsInDeck;
     protected boolean isWorked;
-    protected int amountsInDeck;
     protected boolean isBuildable;
     protected boolean isCommons;
 
@@ -30,29 +34,20 @@ public abstract class Card {
 
     @Override
     public String toString() {
-        // return "Card [cost=" + cost + ", isWorked=" + isWorked + ", name=" + name +
-        // "]";
+        // TODO
         String circle = isWorked ? "●" : "○";
-        return String.format("[%d %s $%d %s]", this.cost, this.name, this.value, circle);
-
-        // StringBuilder sb = new StringBuilder();
-        // sb.append("Card [cost=").append(cost)
+        String s = String.format("[%d %s $%d %s]", this.cost, this.name, this.value, circle);
+        return s;
     }
+
+    // #region sg
 
     public int getId() {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
     public String getName() {
         return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public int getCost() {
@@ -71,20 +66,8 @@ public abstract class Card {
         this.isWorked = isWorked;
     }
 
-    public int getAmountsInDeck() {
-        return amountsInDeck;
-    }
-
-    public void setAmountsInDeck(int amountsInDeck) {
-        this.amountsInDeck = amountsInDeck;
-    }
-
     public CardCategory getCategory() {
         return category;
-    }
-
-    public void setCategory(CardCategory category) {
-        this.category = category;
     }
 
     public int getValue() {
@@ -103,8 +86,6 @@ public abstract class Card {
         this.isBuildable = isBuildable;
     }
 
-    // public abstract Card clone();
-
-    // public abstract boolean play();
+    // #endregion
 
 }

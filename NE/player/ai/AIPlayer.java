@@ -1,6 +1,7 @@
 package NE.player.ai;
 
 import NE.board.Board;
+import NE.card.Card;
 import NE.player.Player;
 
 public class AIPlayer extends Player {
@@ -18,6 +19,12 @@ public class AIPlayer extends Player {
 
     public IAI getBrain() {
         return brain;
+    }
+
+    @Override
+    public void discard(Board board, Card cardToDiscard) {
+        // TODO Auto-generated method stub
+        super.discard(board, cardToDiscard);
     }
 
     public void setBrain(IAI brain) {
