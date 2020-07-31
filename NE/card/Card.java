@@ -28,9 +28,9 @@ public abstract class Card {
 
     }
 
-    public abstract boolean apply(Player player, Board board, List<Integer> options);
+    public abstract boolean apply(Player player, Board board);
 
-    public abstract List<Integer> promptChoice(Player player, Board board);
+    // public abstract List<Integer> promptChoice(Player player, Board board);
 
     @Override
     public String toString() {

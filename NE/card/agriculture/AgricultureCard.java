@@ -16,7 +16,7 @@ public abstract class AgricultureCard extends Card {
     }
 
     @Override
-    public boolean apply(Player player, Board board, List<Integer> options) {
+    public boolean apply(Player player, Board board) {
         if (this.isWorked)
             return false;
         for (int i = 0; i < this.commodities; i++) {
@@ -24,14 +24,6 @@ public abstract class AgricultureCard extends Card {
         }
         this.isWorked = true;
         return true;
-    }
-
-    // protected abstract boolean doWork(Player player, Board board, List<Integer>
-    // options);
-
-    @Override
-    public List<Integer> promptChoice(Player player, Board board) {
-        return null;
     }
 
     public int getCommodities() {

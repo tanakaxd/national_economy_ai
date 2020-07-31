@@ -50,9 +50,24 @@ public abstract class Player {
 
     }
 
-    // TODO humanとaiを分ける処理、それをカードの方に書かずここで一括して管理したい
-    // あるいはAIPlayerでoverrideする方がよい
-    public abstract boolean discard(Board board, List<Integer> indexesToDiscard, int cost);
+    // 捨てたいカードを聞く。人間なら入力を求め、AIならthinkDiscard()を使う
+    public abstract List<Integer> askDiscard(Board board, int cost);
+
+    public abstract List<Integer> askBuild(Board board, Card card);
+
+    // 実際に捨てる処理は不可能な場合があるため、聞く処理と分ける必要がある
+    public void discard(Board board, int index) {
+        try {
+            board.getTrash().add(this.hands.remove(index));
+        } catch (IndexOutOfBoundsException e) {
+            board.getTrash().add(this.hands.remove(0));
+        }
+    }
+
+    public void discard(Board board, Card cardToDiscard) {
+        board.getTrash().add(cardToDiscard);
+        this.hands.remove(cardToDiscard);
+    }
 
     public void build(int index) {
         this.buildings.add(this.hands.remove(index));

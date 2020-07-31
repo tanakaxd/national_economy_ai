@@ -12,13 +12,13 @@ public class SchoolLesser extends SchoolCard {
         this.category = CardCategory.EDUCATION;
         this.name = "学校小";
         this.isWorked = false;
-        this.cost = 1;
+        this.cost = 0;
         this.isBuildable = true;
 
     }
 
     @Override
-    public boolean apply(Player player, Board board, List<Integer> options) {
+    public boolean apply(Player player, Board board) {
         if (this.isWorked)
             return false;
 
@@ -29,10 +29,4 @@ public class SchoolLesser extends SchoolCard {
         this.isWorked = true;
         return true;
     }
-
-    @Override
-    public List<Integer> promptChoice(Player player, Board board) {
-        return null;
-    }
-
 }

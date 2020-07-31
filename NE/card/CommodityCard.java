@@ -18,13 +18,9 @@ public class CommodityCard extends Card {
     }
 
     @Override
-    public boolean apply(Player player, Board board, List<Integer> options) {
+    public boolean apply(Player player, Board board) {
+        // TODO Auto-generated method stub
         return false;
-    }
-
-    @Override
-    public List<Integer> promptChoice(Player player, Board board) {
-        return null;
     }
 
 }

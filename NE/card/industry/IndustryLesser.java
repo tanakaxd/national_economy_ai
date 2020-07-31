@@ -1,9 +1,11 @@
 package NE.card.industry;
 
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import NE.board.Board;
+import NE.card.Card;
 import NE.display.Display;
 import NE.player.Player;
 
@@ -25,25 +27,10 @@ public class IndustryLesser extends IndustryCard {
 
     // 特殊
     @Override
-    public boolean apply(Player player, Board board, List<Integer> options) {
-
-        try {
-            // player.discard(board, options, this.discards);
+    public boolean apply(Player player, Board board) {
+        for (int i = 0; i < this.draws; i++) {
             player.draw(board);
-            return true;
-
-        } catch (IndexOutOfBoundsException e) {
-            e.printStackTrace();
-            return false;
         }
-
+        return true;
     }
-
-    // 特殊
-    @Override
-    public List<Integer> promptChoice(Player player, Board board) {
-        List<Integer> options = new ArrayList<>();
-        return options;
-    }
-
 }

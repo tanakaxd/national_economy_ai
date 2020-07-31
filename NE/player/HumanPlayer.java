@@ -2,11 +2,14 @@ package NE.player;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import NE.board.Board;
 import NE.card.Card;
+import NE.display.Display;
 
 public class HumanPlayer extends Player {
 
@@ -18,32 +21,24 @@ public class HumanPlayer extends Player {
         id++;
     }
 
-    public boolean discard(Board board, List<Integer> indexesToDiscard, int cost) {
-
-        // まず捨てるカード全部の参照を取得したい
-        List<Card> cardsToDiscard = new ArrayList<>();
-
-        List<Integer> modifiedIndexes = indexesToDiscard.stream().distinct().sorted(Comparator.reverseOrder())
-                .collect(Collectors.toList());
-
-        System.out.println("Player#discard " + modifiedIndexes);
-
-        for (Integer index : modifiedIndexes) {
-            cardsToDiscard.add(this.hands.get(index));
+    @Override
+    public List<Integer> askDiscard(Board board, int cost) {
+        System.out.println("捨てるカードを" + cost + "枚選んでください");
+        Display.printChoices(this.hands);
+        Set<Integer> indexes = new HashSet<>();
+        while (indexes.size() < cost) {
+            indexes.add(Display.scanNextInt(this.hands.size()));
         }
+        return new ArrayList<>(indexes).stream().sorted(Comparator.reverseOrder()).collect(Collectors.toList());
+    }
 
-        // コストが足りているかチェック
-        if (cardsToDiscard.size() < cost)
-            return false;
-
-        // 捨てる
-        for (int i = 0; i < cost; i++) {
-            board.getTrash().add(cardsToDiscard.get(i));
-            this.hands.remove(cardsToDiscard.get(i));
-        }
-        // System.out.println("discard");
-        // System.out.println(board.getTrash());
-
-        return true;
+    @Override
+    public List<Integer> askBuild(Board board, Card card) {
+        // TODO multiple
+        System.out.println("建設するカードを選んでください");
+        Display.printChoices(this.hands);
+        Set<Integer> indexes = new HashSet<>();
+        indexes.add(Display.scanNextInt(this.hands.size()));
+        return new ArrayList<>(indexes).stream().sorted(Comparator.reverseOrder()).collect(Collectors.toList());
     }
 }

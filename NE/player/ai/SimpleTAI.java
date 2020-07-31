@@ -2,6 +2,7 @@ package NE.player.ai;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import NE.board.Board;
@@ -22,7 +23,7 @@ public class SimpleTAI implements IAI {
 
     // thinkの結果をそのターン終了まで格納しておくリスト。思考ロックを避けるため
     // 最後の選択カテゴリーを保存しておく、行動失敗したら別カテゴリーを模索
-    private List<CardCategory> simpleMemory = new ArrayList<>();
+    private List<CardCategory> memory = new ArrayList<>();
 
     private double huristicRate = 0.1;// ロジックを無視し思考ロックを打開する確率
 
@@ -31,15 +32,16 @@ public class SimpleTAI implements IAI {
     }
 
     @Override
-    public List<Integer> think(Player self, Board board, int stucked) {
+    public List<Integer> thinkUseCard(Player self, Board board, int stucked) {
 
         this.actions.clear();
         if (stucked == 0) {
-            this.simpleMemory.clear();
+            this.memory.clear();
         } else {
             // 不可能とわかったカテゴリーは記憶しておく
             // 使用する前にわかるときと使用しようとしてからわかるときが２パターン
-            this.simpleMemory.add(this.topPriority);
+            // ここは後者
+            this.memory.add(this.topPriority);
         }
         this.self = self;
         this.board = board;
@@ -50,7 +52,7 @@ public class SimpleTAI implements IAI {
             // memoryを参照し、すでに不可能だったカテゴリーは選ばない
             priotize();
             System.out.println("AI is intending: " + this.topPriority);
-            System.out.println("AI remembers: " + this.simpleMemory);
+            System.out.println("AI remembers: " + this.memory);
 
             // 新規のpriorityに従って、そのカテゴリーの行動が実行可能か調べる
             // 可能ならactionsに、戻り値用のintを入れていく
@@ -61,9 +63,6 @@ public class SimpleTAI implements IAI {
         // カテゴリーに従って、さらに必要な選択をintとして加えていく必要がある
         // 仮に補完用の適当な数値を入れておく
         // 実際には建物に応じて、例えば建設したいカードや捨てたいカードを選択したい
-        for (int i = 0; i < 10; i++) {
-            this.actions.add(Display.myRandom(this.self.getHands().size()));
-        }
         return this.actions;
     }
 
@@ -90,7 +89,7 @@ public class SimpleTAI implements IAI {
             }
         }
         // 不可能とわかったカテゴリーは記憶しておく
-        this.simpleMemory.add(category);
+        this.memory.add(category);
         return false;
     }
 
@@ -150,7 +149,7 @@ public class SimpleTAI implements IAI {
     }
 
     private boolean isNewStrategy(CardCategory category) {
-        return this.simpleMemory.stream().allMatch(c -> c != category);
+        return this.memory.stream().allMatch(c -> c != category);
     }
 
     private class WeightedCategory {
@@ -164,7 +163,15 @@ public class SimpleTAI implements IAI {
     }
 
     @Override
-    public int discard(Player self, Board board) {
+    public int thinkBuild(Player self, Board board, Set<Integer> indexesNotAllowed) {
+        // TODO Auto-generated method stub
+        // 建てられるカードをフィルター
+        // 費用対効果が一番高いものを選ぶ
+        return 0;
+    }
+
+    @Override
+    public int thinkDiscard(Player self, Board board, Set<Integer> indexesNotAllowed) {
         List<Card> commodities = self.getHands().stream().filter(card -> card.getCategory() == CardCategory.COMMODITY)
                 .collect(Collectors.toList());
         if (commodities.size() != 0) {
@@ -174,7 +181,8 @@ public class SimpleTAI implements IAI {
     }
 
     @Override
-    public int sell(Player self, Board board) {
+    public int thinkSell(Player self, Board board) {
+        // TODO Auto-generated method stub
         return 0;
     }
 

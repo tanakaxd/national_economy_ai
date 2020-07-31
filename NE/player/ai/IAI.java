@@ -1,6 +1,7 @@
 package NE.player.ai;
 
 import java.util.List;
+import java.util.Set;
 
 import NE.board.Board;
 import NE.player.Player;
@@ -10,21 +11,22 @@ public interface IAI {
     // 「使いたいカード」
     // どのエリアで、どのカードを使うか決める。その決定をリストとして返す。
     // stuckは今の自分の番ですでに何回失敗しているか。
-    public abstract List<Integer> use(Player self, Board board, int stucks);
+    public abstract List<Integer> thinkUseCard(Player self, Board board, int stucks);
 
     // 「建てたいカード」
-    public abstract int build(Player self, Board board);
+    public abstract int thinkBuild(Player self, Board board, Set<Integer> indexesNotAllowed);
 
     // 「捨てたいカード」
     // 捨てるカードを選ぶ。戻り値は手札内のindex
-    public abstract int discard(Player self, Board board);
+    public abstract int thinkDiscard(Player self, Board board, Set<Integer> indexesNotAllowed);
 
-    // 戻り値として特定のインデックスを除外したヴァージョン。同一カードを選ばせたくない時などに
-    // public abstract int discard(Player self, Board board, int indexesNotAllowed);
+    // // 戻り値として特定のインデックスを除外したヴァージョン。同一カードを選ばせたくない時などに
+    // public abstract int thinkDiscard(Player self, Board board, List<Integer>
+    // indexesNotAllowed);
 
     // 「売りたいカード」
     // 賃金支払いのため売却する物件を選ぶ。戻り値は自物件内のindex
-    public abstract int sell(Player self, Board board);
+    public abstract int thinkSell(Player self, Board board);
 
 }
 
@@ -36,5 +38,9 @@ public interface IAI {
  * 例えば、建築カードなら「建てたいカード」を聞いて、そのコスト分だけ「捨てたいカード」を聞くという設計
  * 
  * 戻り値はリストにしておくという手もある。その場合、優先順位をつけたindex。でも、indexがずれるか？
+ * 
+ * 選択と実際の処理は別物 選択肢が実行不可能な場合がある
+ * 
+ * 問いがどのカードによってもたらされているのかを判断できるように、引数としてCardが送られてくる設計もありか
  * 
  */

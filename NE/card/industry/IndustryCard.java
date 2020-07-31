@@ -1,7 +1,8 @@
 package NE.card.industry;
 
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import NE.board.Board;
 import NE.card.Card;
@@ -18,40 +19,32 @@ public abstract class IndustryCard extends Card {
     }
 
     @Override
-    public boolean apply(Player player, Board board, List<Integer> options) {
+    public boolean apply(Player player, Board board) {
+        List<Card> hands = player.getHands();
 
-        try {
-            List<Card> hands = player.getHands();
-
-            if (hands.size() < this.discards || this.isWorked)
-                return false;
-
-            player.discard(board, options, this.discards);
-
-            for (int i = 0; i < this.draws; i++) {
-                player.draw(board);
-            }
-
-            this.isWorked = true;
-            return true;
-
-        } catch (IndexOutOfBoundsException e) {
-            e.printStackTrace();
+        if (hands.size() < this.discards || this.isWorked)
             return false;
+
+        Display.printChoices(hands);
+
+        List<Integer> indexesToDiscard = player.askDiscard(board, cost).stream().distinct()
+                .sorted(Comparator.reverseOrder()).collect(Collectors.toList());
+
+        if (indexesToDiscard.size() < this.discards)
+            return false;
+
+        // 捨てる
+        for (Integer integer : indexesToDiscard) {
+            player.discard(board, integer);
         }
 
-    }
-
-    @Override
-    public List<Integer> promptChoice(Player player, Board board) {
-        List<Integer> options = new ArrayList<>();
-        Display.printChoices(player.getHands());
-
-        System.out.println("捨てるカードを" + this.discards + "枚選んでください");
-        for (int i = 0; i < this.discards; i++) {
-            options.add(Display.scanNextInt(player.getHands().size()));
+        // draw
+        for (int i = 0; i < this.draws; i++) {
+            player.draw(board);
         }
-        return options;
+
+        this.isWorked = true;
+        return true;
     }
 
 }

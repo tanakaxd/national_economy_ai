@@ -6,9 +6,9 @@ import java.util.Random;
 
 import NE.card.Card;
 import NE.card.agriculture.AgricultureLesser;
-import NE.card.construction.ConstructionMedium;
+import NE.card.construction.ConstructionCardB;
 import NE.card.industry.IndustryMedium;
-import NE.card.market.MarketMedium;
+import NE.card.market.MarketCardB;
 import NE.main.GameManager;
 
 public class Deck {
@@ -18,10 +18,10 @@ public class Deck {
     public Deck(int initialAmounts) {
         this.initialAmounts = initialAmounts;
         if (GameManager.getInstance().isRandomDeck()) {
-            randomInit();
         } else {
             // Init();
         }
+        randomInit();
     }
 
     private void randomInit() {
@@ -32,13 +32,13 @@ public class Deck {
                     this.cards.add(new AgricultureLesser());
                     break;
                 case 1:
-                    this.cards.add(new ConstructionMedium());
+                    this.cards.add(new ConstructionCardB());
                     break;
                 case 2:
                     this.cards.add(new IndustryMedium());
                     break;
                 case 3:
-                    this.cards.add(new MarketMedium());
+                    this.cards.add(new MarketCardB());
                     break;
                 default:
                     System.out.println("invalid case");

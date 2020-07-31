@@ -6,9 +6,9 @@ import java.util.stream.Collectors;
 
 import NE.card.Card;
 import NE.card.Card.CardCategory;
-import NE.card.construction.ConstructionLesser;
+import NE.card.construction.ConstructionCardA;
 import NE.card.industry.IndustryLesser;
-import NE.card.market.MarketLesser;
+import NE.card.market.MarketCardA;
 import NE.card.school.SchoolLesser;
 
 public class Board {
@@ -20,11 +20,11 @@ public class Board {
     public Board(int cardsInDeck) {
         this.deck = new Deck(cardsInDeck);
         this.buildings.add(new IndustryLesser());
-        this.buildings.add(new ConstructionLesser());
-        this.buildings.add(new ConstructionLesser());
-        this.buildings.add(new ConstructionLesser());
+        this.buildings.add(new ConstructionCardA());
+        this.buildings.add(new ConstructionCardA());
+        this.buildings.add(new ConstructionCardA());
         this.buildings.add(new SchoolLesser());
-        this.buildings.add(new MarketLesser());
+        this.buildings.add(new MarketCardA());
     }
 
     public void refreshDeck() {
@@ -58,7 +58,7 @@ public class Board {
         this.gdp += amount;
     }
 
-    public void unbanAll() {
+    public void refreshAllBuildings() {
         for (Card card : buildings) {
             card.setWorked(false);
         }

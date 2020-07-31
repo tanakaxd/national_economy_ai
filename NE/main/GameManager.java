@@ -30,6 +30,7 @@ public class GameManager {
     private int maxTurn = 9;
     private int cardsInDeck = 40;
     private boolean isSinglePlay;
+    private boolean hasManyPlayers;// 3人以上
     private boolean isRandomDeck = true;
 
     // AI settings
@@ -38,9 +39,15 @@ public class GameManager {
     private int maxStucks = 5;
 
     private GameManager() {
+
+    }
+
+    public void init() {
+        System.out.println("GM initialized...");
         this.board = new Board(this.cardsInDeck);
         // this.players.add(new HumanPlayer(this.board));
-        this.players.add(new AIPlayer(this.board, new SimpleTAI()));
+        // this.players.add(new AIPlayer(this.board, new SimpleTAI()));
+        this.players.add(new AIPlayer(this.board, new RandomAI()));
         this.players.add(new AIPlayer(this.board, new RandomAI()));
         this.players.add(new AIPlayer(this.board, new RandomAI()));
         this.players.add(new AIPlayer(this.board, new RandomAI()));
@@ -48,6 +55,8 @@ public class GameManager {
         // playerにカードを配る TODO
 
         this.isSinglePlay = this.players.size() == 1;
+
+        this.hasManyPlayers = this.players.size() >= 3;
 
         this.parentPlayer = this.players.get(0);
 
@@ -122,6 +131,7 @@ public class GameManager {
         System.out.println("Score: " + currentPlayer.getScore());
         System.out.println("Money: " + currentPlayer.getMoney());
         System.out.println("Hands: " + currentPlayer.getHands());
+        System.out.println("Owned Buildings: " + currentPlayer.getBuildings());
 
     }
 
@@ -140,7 +150,7 @@ public class GameManager {
         // this.board.getBuildings().add(new SchoolLesser());
 
         // 全てのフィールド上のカードを労働可能にする
-        this.board.unbanAll();
+        this.board.refreshAllBuildings();
 
         // 全プレイヤー、ターン開始準備
         for (Player player : this.players) {
@@ -183,36 +193,18 @@ public class GameManager {
         if (hands.size() <= currentPlayer.getHandLimits())
             return;
 
+        System.out.println("手札上限を超える分を捨ててください");
+        Display.printChoices(hands);
         int discardsAmount = hands.size() - currentPlayer.getHandLimits();
 
-        if (currentPlayer instanceof HumanPlayer) {
-            // HumanPlayerの場合、選択を一気にできるようPlayer#discardを利用する
-            boolean isSuccess = false;
-            do {
-                List<Integer> indexesToDiscard = new ArrayList<>();
-                System.out.println("手札上限を超える分を捨ててください");
-                Display.printChoices(hands);
-                for (int i = 0; i < discardsAmount; i++) {
-                    indexesToDiscard.add(Display.scanNextInt(hands.size()));
-                }
-                isSuccess = currentPlayer.discard(board, indexesToDiscard, discardsAmount);
-                if (!isSuccess) {
-                    System.out.println("必要量を満たしていません。もう一度やり直してください");
-                }
-            } while (!isSuccess);
-        } else {
-            // AIの方はとりあえず捨てたいカードを一枚ずつ聞く形式にする
-            AIPlayer ai = (AIPlayer) currentPlayer;
-            while (hands.size() > currentPlayer.getHandLimits()) {
-                int option = ai.getBrain().discard(ai, this.board);
-                if (0 <= option && option < hands.size()) {
-                    currentPlayer.discard(board, ai.getHands().get(option));
-                } else {
-                    // 不適切な値なら強制的にindex0のカードを捨てさせる
-                    currentPlayer.discard(board, ai.getHands().get(0));
-                }
-            }
+        List<Integer> indexesToDiscard = currentPlayer.askDiscard(board, discardsAmount);
+
+        for (Integer integer : indexesToDiscard) {
+            currentPlayer.discard(board, integer);
         }
+        // 不適切な値なら強制的にindex0のカードを捨てさせる
+        // currentPlayer.discard(board, ai.getHands().get(0));
+
     }
 
     private void finishGame() {
@@ -260,7 +252,7 @@ public class GameManager {
                 player.sellBuildings(this.board, option);
             } else {
                 AIPlayer ai = (AIPlayer) player;
-                int option = ai.getBrain().sell(ai, this.board);
+                int option = ai.getBrain().thinkSell(ai, this.board);
                 ai.sellBuildings(this.board, option);
             }
         }
@@ -312,11 +304,9 @@ public class GameManager {
 
             // 選択されたカードを取得
             Card card = area.get(optionB);
-            // カードに応じて、使用したときの選択肢の入力を求めリストとして受け取る
-            List<Integer> options = card.promptChoice(currentPlayer, this.board);
 
             // カードを使用する
-            done = card.apply(currentPlayer, this.board, options);
+            done = card.apply(currentPlayer, this.board);
             if (!done) {
                 System.out.println("丸投げだけど、何らかの理由で使用できません。もう一度最初から");
             }
@@ -336,16 +326,15 @@ public class GameManager {
                 // TODO
                 System.out.println("stuck...");
                 System.out.println("forced-piloting initiated");
-                List<Integer> options = new ArrayList<>();
-                this.board.getBuildings().get(0).apply(ai, this.board, options);
+                this.board.getBuildings().get(0).apply(ai, this.board);
                 break;
             }
 
             // Humanplayerの時と違って、どのエリアかも一緒にリターンしてくる
-            List<Integer> options = ai.getBrain().use(ai, this.board, stuck);
-            System.out.println("AI's decision: " + options);
+            List<Integer> options = ai.getBrain().thinkUseCard(ai, this.board, stuck);
+            System.out.println("AI wants to use the card at: " + options);
 
-            int areaChoice = options.remove(0);
+            int areaChoice = options.get(0);
             List<Card> area;
             switch (areaChoice) {
                 case 0:
@@ -365,11 +354,15 @@ public class GameManager {
             }
 
             // 選択されたエリアからカードを取得
-            Card card = area.get(options.remove(0));
+            Card card = area.get(options.get(1));
             System.out.println(card);
 
             // カードを使用する
-            done = card.apply(ai, this.board, options);
+            try {
+                done = card.apply(ai, this.board);
+            } catch (IndexOutOfBoundsException e) {
+                e.printStackTrace();
+            }
 
             System.out.println("AttemptSuccess? " + done);
             try {
@@ -429,6 +422,10 @@ public class GameManager {
 
     public boolean isRandomDeck() {
         return this.isRandomDeck;
+    }
+
+    public boolean hasManyPlayers() {
+        return this.hasManyPlayers;
     }
     // #endregion
 

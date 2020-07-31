@@ -5,9 +5,9 @@ import java.util.List;
 import NE.board.Board;
 import NE.player.Player;
 
-public class MarketLesser extends MarketCard {
+public class MarketCardA extends MarketCard {
 
-    public MarketLesser() {
+    public MarketCardA() {
         this.id = 30;
         this.category = CardCategory.MARKET;
         this.name = "売店小";

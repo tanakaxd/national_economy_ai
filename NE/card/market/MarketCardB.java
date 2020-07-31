@@ -5,9 +5,9 @@ import java.util.List;
 import NE.board.Board;
 import NE.player.Player;
 
-public class MarketMedium extends MarketCard {
+public class MarketCardB extends MarketCard {
 
-    public MarketMedium() {
+    public MarketCardB() {
         this.id = 31;
         this.category = CardCategory.MARKET;
         this.name = "売店中";
@@ -18,7 +18,7 @@ public class MarketMedium extends MarketCard {
         this.isCommons = false;
 
         this.discards = 1;
-        this.profit = 10;
+        this.profit = 8;
     }
 
 }
