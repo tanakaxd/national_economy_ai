@@ -3,24 +3,26 @@ package NE.main;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import NE.board.Board;
 import NE.card.Card;
+import NE.card.Card.CardCategory;
 import NE.display.Display;
-import NE.player.AIPlayer;
 import NE.player.HumanPlayer;
 import NE.player.Player;
-import NE.player.RandomAI;
-import NE.player.TAI;
 import NE.player.Worker;
+import NE.player.ai.AIPlayer;
+import NE.player.ai.RandomAI;
+import NE.player.ai.SimpleTAI;
 
 public class GameManager {
 
-    private int maxTurn = 2;
+    private int maxTurn = 9;
     private int currentTurn = 1;
     private int cardsInDeck = 40;
+    private int waitTime = 0;
+    private int currentWage = 2;
     private boolean isSinglePlay;
     private Board board;
     private List<Player> players = new ArrayList<>();
@@ -30,11 +32,11 @@ public class GameManager {
 
     private GameManager() {
         this.board = new Board(this.cardsInDeck);
-        this.players.add(new HumanPlayer(this.board));
-        // this.players.add(new AIPlayer(new TAI()));
+        // this.players.add(new HumanPlayer(this.board));
+        this.players.add(new AIPlayer(this.board, new SimpleTAI()));
         this.players.add(new AIPlayer(this.board, new RandomAI()));
         this.players.add(new AIPlayer(this.board, new RandomAI()));
-        // this.players.add(new AIPlayer(this.board, new RandomAI()));
+        this.players.add(new AIPlayer(this.board, new RandomAI()));
 
         // playerにカードを配る TODO
 
@@ -59,20 +61,7 @@ public class GameManager {
         // ターンのループ
         while (this.currentTurn <= this.maxTurn) {
 
-            // ターン開始
-            System.out.println();
-            System.out.println("Turn: " + this.currentTurn);
-            System.out.println();
-
-            // 公共の建物を建てる TODO
-
-            // 全てのフィールド上のカードを労働可能にする
-            this.board.unbanAll();
-
-            for (Player player : this.players) {
-                player.initForTurn();
-
-            }
+            initTurn();
 
             // 親プレイヤーから始める
             Player currentPlayer = this.parentPlayer;
@@ -123,33 +112,103 @@ public class GameManager {
                 // ターンを次のプレイヤーへ
                 currentPlayer = getNextPlayer(currentPlayer);
 
-                // 全プレイヤーの労働者がすでに労働しているならbreak
+                // 全プレイヤーの全労働者がすでに労働しているならbreak
                 // このやり方は毎ターン二重ループを回して判定しているので重い処理
                 // 別の方法としては、上のcontinueがプレイヤー数以上続いたらbreakするという方法もある。
                 if (isAllPlayersDone())
                     break;
             }
-
             // 以下は全員の行動が終了したとき
-
-            // 最初に支払処理をするプレイヤーは親プレイヤー
-            Player currentlyPayingPlayer = this.parentPlayer;
-
             // ターン終了処理
-            int count = 0;
-            while (count < this.players.size()) {
-                pay(currentlyPayingPlayer);
-                currentlyPayingPlayer = getNextPlayer(currentlyPayingPlayer);
-                count++;
-            }
-
-            this.currentTurn++;
-
+            terminateTurn();
         }
-
         // ゲーム終了処理
         finish();
+    }
 
+    private void initTurn() {
+
+        System.out.println();
+        System.out.println("Turn: " + this.currentTurn);
+        System.out.println();
+
+        // 賃金上昇処理
+        if (this.currentTurn <= 2) {
+            this.currentWage = 2;
+        } else if (this.currentTurn <= 5) {
+            this.currentWage = 3;
+        } else if (this.currentTurn <= 7) {
+            this.currentWage = 4;
+        } else {
+            this.currentWage = 5;
+        }
+
+        // 公共の建物を建てる TODO
+        // 仮仕様でランダムなカードを公共エリアに
+        // this.board.getBuildings().add(board.getDeck().draw());
+        // this.board.getBuildings().add(new SchoolLesser());
+
+        // 全てのフィールド上のカードを労働可能にする
+        this.board.unbanAll();
+
+        for (Player player : this.players) {
+            player.initForTurn();
+        }
+    }
+
+    private void terminateTurn() {
+
+        // 最初に支払処理をするプレイヤーは親プレイヤー
+        Player currentPlayer = this.parentPlayer;
+
+        int count = 0;
+        while (count < this.players.size()) {
+            // 賃金支払処理
+            payWages(currentPlayer);
+            // 手札調整処理
+            capHands(currentPlayer);
+            currentPlayer = getNextPlayer(currentPlayer);
+            count++;
+        }
+
+        this.currentTurn++;
+    }
+
+    private void capHands(Player currentPlayer) {
+        List<Card> hands = currentPlayer.getHands();
+        if (hands.size() <= currentPlayer.getHandLimits())
+            return;
+
+        int discardsAmount = hands.size() - currentPlayer.getHandLimits();
+
+        if (currentPlayer instanceof HumanPlayer) {
+            // HumanPlayerの場合、選択を一気にできるようPlayer#discardを利用する
+            boolean isSuccess = false;
+            do {
+                List<Integer> indexesToDiscard = new ArrayList<>();
+                System.out.println("手札上限を超える分を捨ててください");
+                Display.printChoices(hands);
+                for (int i = 0; i < discardsAmount; i++) {
+                    indexesToDiscard.add(Display.scanNextInt(hands.size()));
+                }
+                isSuccess = currentPlayer.discard(board, indexesToDiscard, discardsAmount);
+                if (!isSuccess) {
+                    System.out.println("必要量を満たしていません。もう一度やり直してください");
+                }
+            } while (!isSuccess);
+        } else {
+            // AIの方はとりあえず捨てたいカードを一枚ずつ聞く形式にする
+            AIPlayer ai = (AIPlayer) currentPlayer;
+            while (hands.size() > currentPlayer.getHandLimits()) {
+                int option = ai.getBrain().discard(ai, this.board);
+                if (0 <= option && option < hands.size()) {
+                    currentPlayer.discard(board, ai.getHands().get(option));
+                } else {
+                    // 不適切な値なら強制的にindex0のカードを捨てさせる
+                    currentPlayer.discard(board, ai.getHands().get(0));
+                }
+            }
+        }
     }
 
     private void finish() {
@@ -186,24 +245,13 @@ public class GameManager {
         return isAllPlayersDone;
     }
 
-    private void pay(Player player) {
-        // 労働者一人当たりの賃金
-        int wages;
-        if (this.currentTurn <= 2) {
-            wages = 2;
-        } else if (this.currentTurn <= 5) {
-            wages = 3;
-        } else if (this.currentTurn <= 7) {
-            wages = 4;
-        } else {
-            wages = 5;
-        }
+    private void payWages(Player player) {
 
         // トータル賃金
-        int totalWages = player.getWorkers().size() * wages;
+        int totalWages = player.getWorkers().size() * this.currentWage;
 
         // 賃金を所持金でまかなえなければ所持物件を売る
-        // 売れない物件はまだ未実装
+        // 売れない物件はまだ未実装 TODO
         while (player.getMoney() < totalWages && player.getBuildings().size() > 0) {
             if (player instanceof HumanPlayer) {
                 System.out.println("売却するカードを選択してください");
@@ -319,7 +367,7 @@ public class GameManager {
 
             System.out.println("AttemptSuccess? " + done);
             try {
-                Thread.sleep(250);
+                Thread.sleep(this.waitTime);
             } catch (InterruptedException e) {
                 // e.printStackTrace();
             }
@@ -345,12 +393,16 @@ public class GameManager {
 
     public void refreshDeck() {
         System.out.println("deck refreshed!");
-        System.out.println(this.board.getTrash().size());
-        while (this.board.getTrash().size() > 0) {
-            System.out.println("card added!");
-            this.board.getDeck().addCard(this.board.getTrash().remove(0));
-            System.out.println(this.board.getDeck().getCards().size());
+        List<Card> trash = this.board.getTrash().stream().filter(c -> c.getCategory() != CardCategory.COMMODITY)
+                .collect(Collectors.toList());
+        while (trash.size() > 0) {
+            this.board.getDeck().addCard(trash.remove(0));
         }
     }
 
+    // #region setter/getter
+    public int getCurrentWage() {
+        return currentWage;
+    }
+    // #endregion
 }

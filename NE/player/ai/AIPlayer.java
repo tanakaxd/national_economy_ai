@@ -1,6 +1,7 @@
-package NE.player;
+package NE.player.ai;
 
 import NE.board.Board;
+import NE.player.Player;
 
 public class AIPlayer extends Player {
 

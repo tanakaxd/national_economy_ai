@@ -1,4 +1,4 @@
-package NE.player;
+package NE.player.ai;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -6,16 +6,23 @@ import java.util.List;
 import java.util.Random;
 
 import NE.board.Board;
-import NE.card.Card;
 import NE.card.Card.CardCategory;
+import NE.player.Player;
 
 public class TAI implements IAI {
 
     private List<CardCategory> priority;
-    private List<List<Integer>> memory = new ArrayList<>();
+    private List<CardCategory> favor;
+    private List<List<Integer>> memory = new ArrayList<>();// thinkの結果をそのターン終了まで格納しておくリスト。思考ロックを避けるため
     private List<WeightedCategory> weightedCategories = new ArrayList<>();
 
+    private double huristicRate = 0.1;// ロジックを無視し思考ロックを打開する確率
+
     public TAI() {
+
+        for (CardCategory category : CardCategory.values()) {
+            weightedCategories.add(new WeightedCategory(category));
+        }
 
     }
 
@@ -43,10 +50,6 @@ public class TAI implements IAI {
     }
 
     private void priotize() {
-
-        for (CardCategory category : CardCategory.values()) {
-            weightedCategories.add(new WeightedCategory(category));
-        }
 
         this.priority = new ArrayList<CardCategory>(Arrays.asList(CardCategory.values()));
     }

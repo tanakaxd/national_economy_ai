@@ -18,7 +18,7 @@ public abstract class Player {
     protected List<Worker> workers = new ArrayList<>();
     protected int initialWorkers = 2;
     protected int workersCount = 2;
-    protected int money = 5;
+    protected int money;
     protected int debt = 0;
     protected int score = 0;
     protected int handLimits = 5;
@@ -27,7 +27,12 @@ public abstract class Player {
     protected int actionCount = 1;
     protected String name;
 
+    protected static int initialMoney = 5;
+
     public Player(Board board) {
+        this.money = initialMoney;
+        initialMoney++;
+
         for (int i = 0; i < initialHands; i++) {
             draw(board);
         }
@@ -51,6 +56,7 @@ public abstract class Player {
     // }
     public boolean discard(Board board, List<Integer> indexesToDiscard, int cost) {
 
+        // TODO humanとaiを分ける処理、それをカードの方に書かずここで一括して管理したい
         // まず捨てるカード全部の参照を取得したい
         List<Card> cardsToDiscard = new ArrayList<>();
 
@@ -72,17 +78,23 @@ public abstract class Player {
             board.getTrash().add(cardsToDiscard.get(i));
             this.hands.remove(cardsToDiscard.get(i));
         }
-        System.out.println("discard");
-        System.out.println(board.getTrash());
+        // System.out.println("discard");
+        // System.out.println(board.getTrash());
 
         return true;
     }
 
+    // public void promptDiscard(Board board, int cost) {
+    // List<Integer> indexesToDiscard = new ArrayList<>();
+    // Display.printChoices(hands);
+    // int option = Display.scanNextInt(hands.size());
+    // }
+
     public void discard(Board board, Card cardToDiscard) {
         board.getTrash().add(cardToDiscard);
         this.hands.remove(cardToDiscard);
-        System.out.println("discard");
-        System.out.println(board.getTrash());
+        // System.out.println("discard");
+        // System.out.println(board.getTrash());
     }
 
     public void build(int index) {

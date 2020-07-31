@@ -1,4 +1,4 @@
-package NE.player;
+package NE.player.ai;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,6 +7,7 @@ import java.util.Random;
 import NE.board.Board;
 import NE.card.Card;
 import NE.display.Display;
+import NE.player.Player;
 
 public class RandomAI implements IAI {
 
