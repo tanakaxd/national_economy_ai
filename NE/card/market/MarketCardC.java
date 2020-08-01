@@ -9,13 +9,17 @@ public class MarketCardC extends MarketCard {
 
     public MarketCardC() {
         this.id = 32;
-        this.category = CardCategory.MARKET;
         this.name = "スーパー";
+        this.category = CardCategory.MARKET;
         this.cost = 0;
         this.value = 0;
-        this.isWorked = false;
+        this.description = "";
+        this.isAgriculture = false;
+        this.isFactory = false;
+        this.isFacility = false;
         this.isBuildable = false;
         this.isCommons = true;
+        this.isWorked = false;
 
         this.discards = 3;
         this.profit = 18;

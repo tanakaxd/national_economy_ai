@@ -9,13 +9,17 @@ public class MarketCardA extends MarketCard {
 
     public MarketCardA() {
         this.id = 30;
+        this.name = "露店";
         this.category = CardCategory.MARKET;
-        this.name = "売店小";
         this.cost = 0;
         this.value = 0;
-        this.isWorked = false;
+        this.description = "";
+        this.isAgriculture = false;
+        this.isFactory = false;
+        this.isFacility = false;
         this.isBuildable = false;
         this.isCommons = true;
+        this.isWorked = false;
 
         this.discards = 1;
         this.profit = 6;

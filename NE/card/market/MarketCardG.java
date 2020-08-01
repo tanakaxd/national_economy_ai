@@ -1,37 +1,38 @@
-package NE.card.industry;
+package NE.card.market;
+
+import java.util.List;
 
 import NE.board.Board;
 import NE.main.GameManager;
 import NE.player.Player;
 
-public class IndustryCardC extends IndustryCard {
+public class MarketCardG extends MarketCard {
 
-    public IndustryCardC() {
-        this.id = 22;
-        this.name = "鉄工所";
-        this.category = CardCategory.INDUSTRY;
-        this.cost = 1;
-        this.value = 8;
+    public MarketCardG() {
+        this.id = 36;
+        this.name = "宝くじ";
+        this.category = CardCategory.MARKET;
+        this.cost = 2;
+        this.value = 10;
         this.description = "";
         this.isAgriculture = false;
-        this.isFactory = true;
+        this.isFactory = false;
         this.isFacility = false;
         this.isBuildable = true;
         this.isCommons = false;
         this.isWorked = false;
 
-        this.draws = 1;
         this.discards = 0;
+        this.profit = 10;
     }
 
     @Override
     public boolean apply(Player player, Board board) {
-        if (this.isWorked)
+        if (board.getGdp() < 20 || this.isWorked) {
             return false;
-        int amounts = player.getUseMine() ? 2 : 1;
-        for (int i = 0; i < amounts; i++) {
-            player.draw(board);
         }
+
+        player.earnMoney(board, this.profit);
         this.setWorked(true);
         return true;
     }

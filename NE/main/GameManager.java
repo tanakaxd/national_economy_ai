@@ -3,22 +3,23 @@ package NE.main;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 import NE.board.Board;
 import NE.card.Card;
+import NE.card.Card.CardCategory;
 import NE.card.market.MarketCardA;
 import NE.card.market.MarketCardB;
 import NE.card.market.MarketCardC;
 import NE.card.market.MarketCardD;
 import NE.card.market.MarketCardE;
-import NE.card.school.SchoolCardB;
+import NE.card.school.SchoolCardC;
 import NE.display.Display;
 import NE.player.HumanPlayer;
 import NE.player.Player;
 import NE.player.Worker;
 import NE.player.ai.AIPlayer;
-import NE.player.ai.RandomAI;
 import NE.player.ai.SimpleTAI;
 
 public class GameManager {
@@ -62,11 +63,11 @@ public class GameManager {
 
         this.publicBuildings.add(new MarketCardA());
         this.publicBuildings.add(new MarketCardB());
-        this.publicBuildings.add(new SchoolCardB());
+        this.publicBuildings.add(new SchoolCardC());
         this.publicBuildings.add(new MarketCardC());
-        this.publicBuildings.add(new SchoolCardB());
+        this.publicBuildings.add(new SchoolCardC());
         this.publicBuildings.add(new MarketCardD());
-        this.publicBuildings.add(new SchoolCardB());
+        this.publicBuildings.add(new SchoolCardC());
         this.publicBuildings.add(new MarketCardE());
 
         // playerにカードを配る TODO
@@ -265,18 +266,27 @@ public class GameManager {
         int totalWages = player.getWorkers().size() * this.currentWage;
 
         // 賃金を所持金でまかなえなければ所持物件を売る
-        // 売れない物件はまだ未実装 TODO
-        while (player.getMoney() < totalWages && player.getBuildings().size() > 0) {
+        List<Card> buildings = player.getBuildings();
+        int count = 0;
+        while (player.getMoney() < totalWages
+                && buildings.stream().filter(c -> c.getCategory() != CardCategory.FACILITY).count() > 0) {
             if (player instanceof HumanPlayer) {
                 System.out.println("売却するカードを選択してください");
                 Display.printChoices(player.getBuildings());
                 int option = Display.scanNextInt(player.getBuildings().size());
                 player.sellBuildings(this.board, option);
             } else {
+                // todo stuckの可能性あり。とりあえずランダムで抜けられる
                 AIPlayer ai = (AIPlayer) player;
-                int option = ai.getBrain().thinkSell(ai, this.board);
+                int option;
+                if (count > 10) {
+                    option = new Random().nextInt(ai.getBuildings().size());
+                } else {
+                    option = ai.getBrain().thinkSell(ai, this.board);
+                }
                 ai.sellBuildings(this.board, option);
             }
+            count++;
         }
         // 賃金を支払う
         player.payMoney(this.board, totalWages);

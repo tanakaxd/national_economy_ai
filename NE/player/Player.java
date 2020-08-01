@@ -1,13 +1,15 @@
 package NE.player;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 import NE.board.Board;
 import NE.card.Card;
+import NE.card.CommodityCard;
+import NE.card.Card.CardCategory;
+import NE.card.facility.FacilityCard;
 import NE.main.GameManager;
 
 public abstract class Player {
@@ -28,6 +30,9 @@ public abstract class Player {
     protected int handLimits = 5;
     protected int workersLimits = 5;
     protected int actionCount = 1;
+
+    protected boolean useWinery = false;
+    protected boolean useMine = false;
 
     protected static int initialMoney = 5;
 
@@ -50,10 +55,13 @@ public abstract class Player {
 
     }
 
-    // 捨てたいカードを聞く。人間なら入力を求め、AIならthinkDiscard()を使う
+    // 捨てたいカードを聞く。人間なら入力を求め、AIならthinkDiscard()を使う。
+    // ただし、askBuildと別に聞いているため、建てるカードと捨てるカードが被る可能性が出てくることに注意
     public abstract List<Integer> askDiscard(Board board, int cost);
 
-    public abstract List<Integer> askBuild(Board board, Card card);
+    public abstract List<Integer> askDiscard(Board board, int cost, List<Integer> indexesNotAllowed);
+
+    public abstract List<Integer> askBuild(Board board, int amounts, Card card);
 
     // 実際に捨てる処理は不可能な場合があるため、聞く処理と分ける必要がある
     public void discard(Board board, int index) {
@@ -91,6 +99,8 @@ public abstract class Player {
     }
 
     public void sellBuildings(Board board, Card cardToSell) {
+        if (cardToSell.getCategory() == CardCategory.FACILITY)
+            return;
         if (GameManager.getInstance().isSinglePlay()) {
             this.money += cardToSell.getValue() / 2;
         } else {
@@ -101,10 +111,13 @@ public abstract class Player {
     }
 
     public void sellBuildings(Board board, int index) {
+        Card cardToSell = this.buildings.get(index);
+        if (cardToSell.getCategory() == CardCategory.FACILITY)
+            return;
         if (GameManager.getInstance().isSinglePlay()) {
-            this.money += this.buildings.get(index).getValue() / 2;
+            this.money += cardToSell.getValue() / 2;
         } else {
-            this.money += this.buildings.get(index).getValue();
+            this.money += cardToSell.getValue();
         }
         board.getBuildings().add(this.buildings.remove(index));
     }
@@ -144,13 +157,20 @@ public abstract class Player {
         for (Card card : buildings) {
             totalRealEstateValue += card.getValue();
         }
-        this.score = totalRealEstateValue + this.money + (this.debt * 3) + calcVictoryPointsScore();
+        this.score = totalRealEstateValue + this.money + (this.debt * 3) + calcVictoryPointsScore()
+                + calcFacilityBonus();
     }
 
     private int calcVictoryPointsScore() {
         int ex = this.victoryPoint % 3;
         int score = this.victoryPoint / 3 * 10 + ex;
         return score;
+    }
+
+    private int calcFacilityBonus() {
+        int bonus = this.buildings.stream().filter(c -> c.getCategory() == CardCategory.FACILITY)
+                .mapToInt(c -> ((FacilityCard) c).calcBonus(this)).sum();
+        return bonus;
     }
 
     public Worker getWorkableWorker() {
@@ -175,10 +195,21 @@ public abstract class Player {
         // 行動回数カウンターをリセットする
         this.actionCount = 1;
         // 醸造所効果
+        if (useWinery) {
+            for (int i = 0; i < 4; i++) {
+                this.hands.add(new CommodityCard());
+            }
+            this.useWinery = false;
+        }
+        this.useMine = false;
     }
 
     public void acted() {
         this.actionCount++;
+    }
+
+    public void addVictoryPoint(int i) {
+        this.victoryPoint += i;
     }
 
     // #region setter&getter
@@ -286,6 +317,18 @@ public abstract class Player {
 
     public void setVictoryPoint(int victoryPoint) {
         this.victoryPoint = victoryPoint;
+    }
+
+    public void useWinery(boolean b) {
+        this.useWinery = b;
+    }
+
+    public void useMine(boolean b) {
+        this.useMine = b;
+    }
+
+    public boolean getUseMine() {
+        return this.useMine;
     }
 
     // #endregion

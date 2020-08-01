@@ -25,7 +25,7 @@ public abstract class Card {
     protected boolean isCommons;
 
     public Card() {
-
+        this.isWorked = false;
     }
 
     public abstract boolean apply(Player player, Board board);
@@ -50,6 +50,10 @@ public abstract class Card {
         return name;
     }
 
+    // TODO コストはプレイヤーの所有物件、手札、勝利ポイントによって変動する
+    // public int getCost(Player player) {
+    // return cost;
+    // }
     public int getCost() {
         return cost;
     }
@@ -82,8 +86,24 @@ public abstract class Card {
         return isBuildable;
     }
 
-    public void setBuildable(boolean isBuildable) {
-        this.isBuildable = isBuildable;
+    public String getDescription() {
+        return description;
+    }
+
+    public boolean isAgriculture() {
+        return isAgriculture;
+    }
+
+    public boolean isFactory() {
+        return isFactory;
+    }
+
+    public boolean isFacility() {
+        return isFacility;
+    }
+
+    public boolean isCommons() {
+        return isCommons;
     }
 
     // #endregion

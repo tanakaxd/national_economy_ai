@@ -9,14 +9,16 @@ public class SchoolCardA extends SchoolCard {
 
     public SchoolCardA() {
         this.id = 40;
-        this.category = CardCategory.EDUCATION;
         this.name = "学校";
+        this.category = CardCategory.EDUCATION;
         this.cost = 0;
         this.value = 0;
-        this.isWorked = false;
+        this.description = "";
+        this.isAgriculture = false;
+        this.isFactory = false;
+        this.isFacility = false;
         this.isBuildable = false;
         this.isCommons = true;
-
     }
 
     @Override

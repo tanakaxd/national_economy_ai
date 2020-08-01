@@ -22,6 +22,11 @@ public class HumanPlayer extends Player {
     }
 
     @Override
+    public List<Integer> askDiscard(Board board, int cost, List<Integer> indexesNotAllowed) {
+        return this.askDiscard(board, cost);
+    }
+
+    @Override
     public List<Integer> askDiscard(Board board, int cost) {
         System.out.println("捨てるカードを" + cost + "枚選んでください");
         Display.printChoices(this.hands);
@@ -33,12 +38,13 @@ public class HumanPlayer extends Player {
     }
 
     @Override
-    public List<Integer> askBuild(Board board, Card card) {
-        // TODO multiple
+    public List<Integer> askBuild(Board board, int amounts, Card card) {
         System.out.println("建設するカードを選んでください");
         Display.printChoices(this.hands);
         Set<Integer> indexes = new HashSet<>();
-        indexes.add(Display.scanNextInt(this.hands.size()));
+        while (indexes.size() < amounts) {
+            indexes.add(Display.scanNextInt(this.hands.size()));
+        }
         return new ArrayList<>(indexes).stream().sorted(Comparator.reverseOrder()).collect(Collectors.toList());
     }
 }

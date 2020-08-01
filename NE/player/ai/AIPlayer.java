@@ -34,6 +34,33 @@ public class AIPlayer extends Player {
     }
 
     @Override
+    public List<Integer> askDiscard(Board board, int cost, List<Integer> indexesNotAllowed) {
+
+        System.out.println("捨てるカードを" + cost + "枚選んでください");
+        Display.printChoices(this.hands);
+        // 許可されていないindexを最初に入れてしまう
+        Set<Integer> indexes = new HashSet<>(indexesNotAllowed);
+        System.out.println("NOT ALLOWED: " + indexes);
+        int count = 0;
+        while (indexes.size() + indexesNotAllowed.size() < cost) {
+            indexes.add(this.brain.thinkDiscard(this, board, indexes));
+            count++;
+            if (count >= 100) {
+                // TODO AIのstuckを予防する
+                break;
+            }
+        }
+        System.out.println("NOT ALLOWED + AI CHOISE: " + indexes);
+
+        /// 許可されていないindexを削除する
+        for (Integer integer : indexesNotAllowed) {
+            indexes.remove(integer);
+        }
+        System.out.println("AI chose: " + indexes);
+        return new ArrayList<>(indexes).stream().sorted(Comparator.reverseOrder()).collect(Collectors.toList());
+    }
+
+    @Override
     public List<Integer> askDiscard(Board board, int cost) {
 
         System.out.println("捨てるカードを" + cost + "枚選んでください");
@@ -53,12 +80,19 @@ public class AIPlayer extends Player {
     }
 
     @Override
-    public List<Integer> askBuild(Board board, Card card) {
-        // TODO multiple
+    public List<Integer> askBuild(Board board, int amounts, Card card) {
         System.out.println("建設するカードを選んでください");
         Display.printChoices(this.hands);
         Set<Integer> indexes = new HashSet<>();
-        indexes.add(this.brain.thinkBuild(this, board, indexes));
+        int count = 0;
+        while (indexes.size() < amounts) {
+            indexes.add(this.brain.thinkBuild(this, board, indexes));
+            count++;
+            if (count >= 100) {
+                // TODO AIのstuckを予防する
+                break;
+            }
+        }
         System.out.println("AI chose: " + indexes);
         return new ArrayList<>(indexes).stream().sorted(Comparator.reverseOrder()).collect(Collectors.toList());
     }

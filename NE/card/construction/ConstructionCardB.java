@@ -13,13 +13,17 @@ public class ConstructionCardB extends ConstructionCard {
 
     public ConstructionCardB() {
         this.id = 11;
-        this.category = CardCategory.CONSTRUCTION;
         this.name = "宮大工";
+        this.category = CardCategory.CONSTRUCTION;
         this.cost = 1;
         this.value = 8;
-        this.isWorked = false;
+        this.description = "";
+        this.isAgriculture = false;
+        this.isFactory = false;
+        this.isFacility = false;
         this.isBuildable = true;
         this.isCommons = false;
+        this.isWorked = false;
 
         this.minHands = 1;
         this.amountsToBuild = 1;
@@ -34,7 +38,7 @@ public class ConstructionCardB extends ConstructionCard {
 
         Display.printChoices(hands);
 
-        List<Integer> indexesToBuild = player.askBuild(board, this);
+        List<Integer> indexesToBuild = player.askBuild(board, this.amountsToBuild, this);
         int indexToBuild = indexesToBuild.get(0);
 
         int cost = hands.get(indexToBuild).getCost();
@@ -74,6 +78,8 @@ public class ConstructionCardB extends ConstructionCard {
         for (Card c : cardsToBuild) {
             player.build(c);
         }
+
+        player.addVictoryPoint(1);
         this.isWorked = true;
         return true;
 

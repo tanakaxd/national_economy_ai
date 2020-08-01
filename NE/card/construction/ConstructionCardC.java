@@ -1,6 +1,5 @@
 package NE.card.construction;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -10,14 +9,14 @@ import NE.card.Card;
 import NE.display.Display;
 import NE.player.Player;
 
-public class ConstructionCardE extends ConstructionCard {
+public class ConstructionCardC extends ConstructionCard {
 
-    public ConstructionCardE() {
-        this.id = 14;
-        this.name = "地球建設";
+    public ConstructionCardC() {
+        this.id = 12;
+        this.name = "建築会社";
         this.category = CardCategory.CONSTRUCTION;
-        this.cost = 4;
-        this.value = 16;
+        this.cost = 1;
+        this.value = 10;
         this.description = "";
         this.isAgriculture = false;
         this.isFactory = false;
@@ -26,13 +25,12 @@ public class ConstructionCardE extends ConstructionCard {
         this.isCommons = false;
         this.isWorked = false;
 
-        this.minHands = 2;
-        this.amountsToBuild = 2;
+        this.minHands = 1;
+        this.amountsToBuild = 1;
     }
 
     @Override
     public boolean apply(Player player, Board board) {
-
         List<Card> hands = player.getHands();
 
         if (hands.size() < this.minHands || this.isWorked)
@@ -41,14 +39,14 @@ public class ConstructionCardE extends ConstructionCard {
         Display.printChoices(hands);
 
         List<Integer> indexesToBuild = player.askBuild(board, this.amountsToBuild, this);
+        int indexToBuild = indexesToBuild.get(0);
 
-        int totalCost = indexesToBuild.stream().map(i -> hands.get(i).getCost()).mapToInt(Integer::intValue).sum();
-
-        if (totalCost + this.amountsToBuild > hands.size())
+        int cost = hands.get(indexToBuild).getCost();
+        if (cost + this.amountsToBuild > hands.size())
             return false;
 
         // TODO askした段階で、加工されたリストが送られてくると保証できれば、この処理は簡略化できる可能性がある
-        List<Integer> indexesToDiscard = player.askDiscard(board, cost, indexesToBuild).stream().distinct()
+        List<Integer> indexesToDiscard = player.askDiscard(board, cost).stream().distinct()
                 .sorted(Comparator.reverseOrder()).collect(Collectors.toList());
 
         if (indexesToDiscard.size() < cost)
@@ -57,14 +55,11 @@ public class ConstructionCardE extends ConstructionCard {
         // 建てるカードの参照を取得
         List<Card> cardsToBuild = indexesToBuild.stream().map(index -> hands.get(index)).collect(Collectors.toList());
 
-        // 全てのカードが建設可能かチェック。
-        if (cardsToBuild.stream().anyMatch(c -> !c.isBuildable()))
+        // 全てのカードが建設可能かチェック。建てられないやつがある、またはFACILITYでないやつがある
+        if (cardsToBuild.stream().anyMatch(c -> !c.isBuildable() || c.getCategory() != CardCategory.FACILITY))
             return false;
 
         // 建てるカードと捨てるカードがかぶらないように。聞く段階では別々のメソッドを使用しているため、この処理はここで両者の情報を統合して行う必要がある。
-        // ここでチェックすれば例外を防ぐこと自体は可能だが、AIがstuckし続けて何も建築できないという事態は防げない。
-        // なので、Player#askDiscardの継承先でかぶらないようにチェックする設計にした
-        // よって、ここでチェックしているのは念のためとプレイヤー用
         boolean isViableChoice = indexesToDiscard.stream()
                 .noneMatch(d -> indexesToBuild.stream().anyMatch(b -> d == b));
         if (!isViableChoice)
@@ -85,14 +80,14 @@ public class ConstructionCardE extends ConstructionCard {
         }
 
         // draw
-        if (hands.size() == 0) {
-            for (int i = 0; i < 3; i++) {
-                player.draw(board);
-            }
+        for (int i = 0; i < 2; i++) {
+            player.draw(board);
         }
 
+        player.addVictoryPoint(1);
         this.isWorked = true;
         return true;
 
     }
+
 }

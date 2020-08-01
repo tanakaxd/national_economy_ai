@@ -1,13 +1,13 @@
 package NE.card.market;
 
-public class MarketCardF extends MarketCard {
+public class MarketCardI extends MarketCard {
 
-    public MarketCardF() {
-        this.id = 35;
-        this.name = "食堂";
+    public MarketCardI() {
+        this.id = 38;
+        this.name = "遊園地";
         this.category = CardCategory.MARKET;
-        this.cost = 1;
-        this.value = 8;
+        this.cost = 5;
+        this.value = 24;
         this.description = "";
         this.isAgriculture = false;
         this.isFactory = false;
@@ -16,8 +16,8 @@ public class MarketCardF extends MarketCard {
         this.isCommons = false;
         this.isWorked = false;
 
-        this.discards = 1;
-        this.profit = 8;
+        this.discards = 2;
+        this.profit = 25;
     }
 
 }

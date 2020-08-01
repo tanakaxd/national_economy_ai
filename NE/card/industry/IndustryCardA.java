@@ -13,13 +13,17 @@ public class IndustryCardA extends IndustryCard {
 
     public IndustryCardA() {
         this.id = 20;
-        this.category = CardCategory.INDUSTRY;
         this.name = "鉱山";
-        this.cost = 1;
+        this.category = CardCategory.INDUSTRY;
+        this.cost = 0;
         this.value = 0;
-        this.isWorked = false;
+        this.description = "";
+        this.isAgriculture = false;
+        this.isFactory = false;
+        this.isFacility = false;
         this.isBuildable = false;
         this.isCommons = true;
+        this.isWorked = false;
 
         this.draws = 1;
         this.discards = 0;
@@ -31,6 +35,7 @@ public class IndustryCardA extends IndustryCard {
         for (int i = 0; i < this.draws; i++) {
             player.draw(board);
         }
+        player.useMine(true);
         return true;
     }
 }

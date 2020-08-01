@@ -5,11 +5,11 @@ import java.util.List;
 import NE.board.Board;
 import NE.player.Player;
 
-public class SchoolCardB extends SchoolCard {
+public class SchoolCardD extends SchoolCard {
 
-    public SchoolCardB() {
-        this.id = 41;
-        this.name = "高等学校";
+    public SchoolCardD() {
+        this.id = 43;
+        this.name = "専門学校";
         this.category = CardCategory.EDUCATION;
         this.cost = 0;
         this.value = 0;
@@ -19,17 +19,18 @@ public class SchoolCardB extends SchoolCard {
         this.isFacility = false;
         this.isBuildable = false;
         this.isCommons = true;
-        this.isWorked = false;
+
     }
 
     @Override
     public boolean apply(Player player, Board board) {
-        if (this.isWorked || player.getWorkers().size() >= 4)
+        if (this.isWorked)
             return false;
 
-        while (player.getWorkers().size() < 4) {
-            player.addWorker(false);
-        }
+        boolean success = player.addWorker(true);
+        if (!success)
+            return false;
+
         this.isWorked = true;
         return true;
     }
