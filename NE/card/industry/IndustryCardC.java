@@ -1,11 +1,11 @@
 package NE.card.industry;
 
-public class IndustryMedium extends IndustryCard {
+public class IndustryCardC extends IndustryCard {
 
-    public IndustryMedium() {
-        this.id = 21;
+    public IndustryCardC() {
+        this.id = 22;
         this.category = CardCategory.INDUSTRY;
-        this.name = "工場中";
+        this.name = "食品工場";
         this.cost = 2;
         this.value = 12;
         this.isWorked = false;
@@ -15,5 +15,7 @@ public class IndustryMedium extends IndustryCard {
         this.draws = 4;
         this.discards = 2;
     }
+
+    // TODO override
 
 }

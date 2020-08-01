@@ -174,6 +174,7 @@ public abstract class Player {
         refreshWorkers();
         // 行動回数カウンターをリセットする
         this.actionCount = 1;
+        // 醸造所効果
     }
 
     public void acted() {

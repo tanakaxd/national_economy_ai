@@ -20,10 +20,6 @@ public interface IAI {
     // 捨てるカードを選ぶ。戻り値は手札内のindex
     public abstract int thinkDiscard(Player self, Board board, Set<Integer> indexesNotAllowed);
 
-    // // 戻り値として特定のインデックスを除外したヴァージョン。同一カードを選ばせたくない時などに
-    // public abstract int thinkDiscard(Player self, Board board, List<Integer>
-    // indexesNotAllowed);
-
     // 「売りたいカード」
     // 賃金支払いのため売却する物件を選ぶ。戻り値は自物件内のindex
     public abstract int thinkSell(Player self, Board board);

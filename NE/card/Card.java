@@ -11,15 +11,15 @@ public abstract class Card {
     }
 
     protected int id;
+    protected String name;
     protected CardCategory category;
+    protected int cost;
+    protected int value;
+    protected String description;
+    // protected int amountsInDeck;
     protected boolean isAgriculture;
     protected boolean isFactory;
     protected boolean isFacility;
-    protected String name;
-    protected String description;
-    protected int cost;
-    protected int value;
-    // protected int amountsInDeck;
     protected boolean isWorked;
     protected boolean isBuildable;
     protected boolean isCommons;

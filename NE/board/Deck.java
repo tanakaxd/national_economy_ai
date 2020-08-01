@@ -5,10 +5,10 @@ import java.util.List;
 import java.util.Random;
 
 import NE.card.Card;
-import NE.card.agriculture.AgricultureLesser;
+import NE.card.agriculture.AgricultureCardA;
 import NE.card.construction.ConstructionCardB;
-import NE.card.industry.IndustryMedium;
-import NE.card.market.MarketCardB;
+import NE.card.industry.IndustryCardC;
+import NE.card.market.MarketCardF;
 import NE.main.GameManager;
 
 public class Deck {
@@ -29,16 +29,16 @@ public class Deck {
             int num = new Random().nextInt(4);
             switch (num) {
                 case 0:
-                    this.cards.add(new AgricultureLesser());
+                    this.cards.add(new AgricultureCardA());
                     break;
                 case 1:
                     this.cards.add(new ConstructionCardB());
                     break;
                 case 2:
-                    this.cards.add(new IndustryMedium());
+                    this.cards.add(new IndustryCardC());
                     break;
                 case 3:
-                    this.cards.add(new MarketCardB());
+                    this.cards.add(new MarketCardF());
                     break;
                 default:
                     System.out.println("invalid case");

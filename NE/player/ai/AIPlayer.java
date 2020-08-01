@@ -39,8 +39,14 @@ public class AIPlayer extends Player {
         System.out.println("捨てるカードを" + cost + "枚選んでください");
         Display.printChoices(this.hands);
         Set<Integer> indexes = new HashSet<>();
+        int count = 0;
         while (indexes.size() < cost) {
             indexes.add(this.brain.thinkDiscard(this, board, indexes));
+            count++;
+            if (count >= 100) {
+                // TODO AIのstuckを予防する
+                break;
+            }
         }
         System.out.println("AI chose: " + indexes);
         return new ArrayList<>(indexes).stream().sorted(Comparator.reverseOrder()).collect(Collectors.toList());
@@ -48,7 +54,6 @@ public class AIPlayer extends Player {
 
     @Override
     public List<Integer> askBuild(Board board, Card card) {
-
         // TODO multiple
         System.out.println("建設するカードを選んでください");
         Display.printChoices(this.hands);

@@ -7,9 +7,9 @@ import java.util.stream.Collectors;
 import NE.card.Card;
 import NE.card.Card.CardCategory;
 import NE.card.construction.ConstructionCardA;
-import NE.card.industry.IndustryLesser;
-import NE.card.market.MarketCardA;
-import NE.card.school.SchoolLesser;
+import NE.card.industry.IndustryCardA;
+import NE.card.industry.IndustryCardB;
+import NE.card.school.SchoolCardA;
 
 public class Board {
     private Deck deck;
@@ -19,12 +19,12 @@ public class Board {
 
     public Board(int cardsInDeck) {
         this.deck = new Deck(cardsInDeck);
-        this.buildings.add(new IndustryLesser());
+        this.buildings.add(new IndustryCardA());
         this.buildings.add(new ConstructionCardA());
         this.buildings.add(new ConstructionCardA());
         this.buildings.add(new ConstructionCardA());
-        this.buildings.add(new SchoolLesser());
-        this.buildings.add(new MarketCardA());
+        this.buildings.add(new SchoolCardA());
+        this.buildings.add(new IndustryCardB());
     }
 
     public void refreshDeck() {

@@ -5,20 +5,20 @@ import java.util.List;
 import NE.board.Board;
 import NE.player.Player;
 
-public class MarketCardA extends MarketCard {
+public class MarketCardD extends MarketCard {
 
-    public MarketCardA() {
-        this.id = 30;
+    public MarketCardD() {
+        this.id = 33;
         this.category = CardCategory.MARKET;
-        this.name = "売店小";
+        this.name = "百貨店";
         this.cost = 0;
         this.value = 0;
         this.isWorked = false;
         this.isBuildable = false;
         this.isCommons = true;
 
-        this.discards = 1;
-        this.profit = 6;
+        this.discards = 4;
+        this.profit = 24;
     }
 
 }

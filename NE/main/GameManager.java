@@ -7,7 +7,12 @@ import java.util.stream.Collectors;
 
 import NE.board.Board;
 import NE.card.Card;
-import NE.card.Card.CardCategory;
+import NE.card.market.MarketCardA;
+import NE.card.market.MarketCardB;
+import NE.card.market.MarketCardC;
+import NE.card.market.MarketCardD;
+import NE.card.market.MarketCardE;
+import NE.card.school.SchoolCardB;
 import NE.display.Display;
 import NE.player.HumanPlayer;
 import NE.player.Player;
@@ -25,6 +30,7 @@ public class GameManager {
     // private Player currentPlayer;
     private int currentTurn = 1;
     private int currentWage = 2;
+    private List<Card> publicBuildings = new ArrayList<>();
 
     // game settings
     private int maxTurn = 9;
@@ -43,14 +49,25 @@ public class GameManager {
     }
 
     public void init() {
-        System.out.println("GM initialized...");
         this.board = new Board(this.cardsInDeck);
         // this.players.add(new HumanPlayer(this.board));
-        // this.players.add(new AIPlayer(this.board, new SimpleTAI()));
-        this.players.add(new AIPlayer(this.board, new RandomAI()));
-        this.players.add(new AIPlayer(this.board, new RandomAI()));
-        this.players.add(new AIPlayer(this.board, new RandomAI()));
-        this.players.add(new AIPlayer(this.board, new RandomAI()));
+        this.players.add(new AIPlayer(this.board, new SimpleTAI()));
+        // this.players.add(new AIPlayer(this.board, new RandomAI()));
+        this.players.add(new AIPlayer(this.board, new SimpleTAI()));
+        this.players.add(new AIPlayer(this.board, new SimpleTAI()));
+        this.players.add(new AIPlayer(this.board, new SimpleTAI()));
+        // this.players.add(new AIPlayer(this.board, new RandomAI()));
+        // this.players.add(new AIPlayer(this.board, new RandomAI()));
+        // this.players.add(new AIPlayer(this.board, new RandomAI()));
+
+        this.publicBuildings.add(new MarketCardA());
+        this.publicBuildings.add(new MarketCardB());
+        this.publicBuildings.add(new SchoolCardB());
+        this.publicBuildings.add(new MarketCardC());
+        this.publicBuildings.add(new SchoolCardB());
+        this.publicBuildings.add(new MarketCardD());
+        this.publicBuildings.add(new SchoolCardB());
+        this.publicBuildings.add(new MarketCardE());
 
         // playerにカードを配る TODO
 
@@ -59,6 +76,7 @@ public class GameManager {
         this.hasManyPlayers = this.players.size() >= 3;
 
         this.parentPlayer = this.players.get(0);
+        System.out.println("GM INITIALISED...");
 
     }
 
@@ -183,6 +201,10 @@ public class GameManager {
             capHands(currentPlayer);
             currentPlayer = getNextPlayer(currentPlayer);
             count++;
+        }
+
+        if (this.publicBuildings.size() != 0) {
+            this.board.getBuildings().add(this.publicBuildings.remove(0));
         }
 
         this.currentTurn++;
@@ -386,7 +408,7 @@ public class GameManager {
 
     public static GameManager getInstance() {
         if (theInstance == null) {
-            System.out.println("GM Instantiated...");
+            System.out.println("GM INSTANTIATED...");
             theInstance = new GameManager();
         }
         return theInstance;

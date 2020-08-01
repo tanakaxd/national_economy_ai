@@ -1,14 +1,17 @@
 package NE.player.ai;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import NE.board.Board;
 import NE.card.Card;
 import NE.card.Card.CardCategory;
-import NE.display.Display;
 import NE.main.GameManager;
 import NE.player.Player;
 
@@ -60,29 +63,27 @@ public class SimpleTAI implements IAI {
 
         } while (!isPossible);
 
-        // カテゴリーに従って、さらに必要な選択をintとして加えていく必要がある
-        // 仮に補完用の適当な数値を入れておく
-        // 実際には建物に応じて、例えば建設したいカードや捨てたいカードを選択したい
         return this.actions;
     }
 
     private boolean pickArea(CardCategory category) {
         // 選びたいカテゴリーのカードを捜索して発見し次第そのエリアをintでactionにadd
-        // まず自物件を検索
-        for (int i = 0; i < this.self.getBuildings().size(); i++) {
-            Card building = this.self.getBuildings().get(i);
+        // 公共物件を最近建てられた物件から検索
+        // TODO 検索精度を上げる
+        for (int i = this.board.getBuildings().size() - 1; i >= 0; i--) {
+            Card building = this.board.getBuildings().get(i);
             if (building.getCategory() == category && !building.isWorked()) {
-                this.actions.add(1);// 1=自分の建物の意味
+                this.actions.add(0);// 0=公共の建物の意味
                 this.actions.add(i);
                 this.buildingToWork = building;
                 return true;
             }
         }
-        // 公共物件を最近建てられた物件から検索
-        for (int i = this.board.getBuildings().size() - 1; i >= 0; i--) {
-            Card building = this.board.getBuildings().get(i);
+        // まず自物件を検索
+        for (int i = 0; i < this.self.getBuildings().size(); i++) {
+            Card building = this.self.getBuildings().get(i);
             if (building.getCategory() == category && !building.isWorked()) {
-                this.actions.add(0);// 0=公共の建物の意味
+                this.actions.add(1);// 1=自分の建物の意味
                 this.actions.add(i);
                 this.buildingToWork = building;
                 return true;
@@ -97,8 +98,8 @@ public class SimpleTAI implements IAI {
 
         int handSize = this.self.getHands().size();
 
-        // ラストターンで手札の枚数が多いなら
-        if (GameManager.getInstance().getCurrentTurn() == 9 && handSize >= 4) {
+        // 終盤で手札の枚数が多いなら
+        if (GameManager.getInstance().getCurrentTurn() >= 8 && handSize >= 4) {
             if (isNewStrategy(CardCategory.MARKET)) {
                 this.topPriority = CardCategory.MARKET;
                 return;
@@ -113,29 +114,35 @@ public class SimpleTAI implements IAI {
 
         // 賃金が十分にあるか
         if (isNewStrategy(CardCategory.MARKET)) {
-            if (this.self.getMoney() <= this.self.getWorkers().size() * GameManager.getInstance().getCurrentWage()
-                    / 2) {
+            if (this.self.getMoney() <= this.self.getWorkers().size() * GameManager.getInstance().getCurrentWage()) {
                 this.topPriority = CardCategory.MARKET;
                 return;
             }
         }
 
+        // 消費財が多く、action数に余裕があるか TODO 採石場を除外したい
+        // if (isNewStrategy(CardCategory.INDUSTRY)
+        // && this.self.getHands().stream().filter(c -> c.getCategory() ==
+        // CardCategory.COMMODITY).count() >= 2
+        // && this.self.getWorkers().size() - 1 >= this.self.getActionCount()) {
+        // this.topPriority = CardCategory.INDUSTRY;
+        // return;
+        // }
+
         // 手札の枚数はどうか
         if (handSize >= 3) {
             // 多いなら->建てられるか
+            // 手札が多くconstructionに失敗したらindustryになる。次のターンの建設に備えられるか？
             if (isNewStrategy(CardCategory.CONSTRUCTION)) {
                 this.topPriority = CardCategory.CONSTRUCTION;
                 return;
             }
-
         } else {
             // 少ないなら->ドローしたい->消費財
             // ターンのアクション数に余裕があるか
-            if (this.self.getWorkers().size() - 2 >= this.self.getActionCount()) {
-                if (isNewStrategy(CardCategory.AGRICULTURE)) {
-                    this.topPriority = CardCategory.AGRICULTURE;
-                    return;
-                }
+            if (isNewStrategy(CardCategory.AGRICULTURE)) {
+                this.topPriority = CardCategory.AGRICULTURE;
+                return;
             } else {
                 if (isNewStrategy(CardCategory.INDUSTRY)) {
                     this.topPriority = CardCategory.INDUSTRY;
@@ -152,32 +159,55 @@ public class SimpleTAI implements IAI {
         return this.memory.stream().allMatch(c -> c != category);
     }
 
-    private class WeightedCategory {
-        public WeightedCategory(CardCategory category, int score) {
-            this.category = category;
-            this.score = score;
-        }
-
-        public CardCategory category;
-        public int score;
-    }
-
     @Override
     public int thinkBuild(Player self, Board board, Set<Integer> indexesNotAllowed) {
-        // TODO Auto-generated method stub
         // 建てられるカードをフィルター
-        // 費用対効果が一番高いものを選ぶ
-        return 0;
+        List<Card> candidates = this.self.getHands().stream().filter(c -> c.isBuildable()).collect(Collectors.toList());
+        if (candidates.size() == 0)
+            return 0;
+
+        Map<Card, Integer> performances = new LinkedHashMap<>();
+        for (Card card : candidates) {
+            performances.put(card, card.getValue() / card.getCost());
+        }
+
+        List<Card> filtered = candidates.stream().filter(c -> c.getCost() <= self.getHands().size() - 1)
+                .sorted(Comparator.comparing(Card::getCost)).collect(Collectors.toList());
+
+        if (filtered.size() == 0)
+            return 0;
+
+        System.out.println(filtered);
+        return this.self.getHands().indexOf(filtered.get(0));
+
+        // 費用対効果が一番高いものを選ぶ TODO 並び替えられてない
+        // Map<Card, Integer> result = performances.entrySet().stream()
+        // .sorted(Map.Entry.<Card, Integer>comparingByValue().reversed())
+        // .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+
+        // result.forEach((k, v) -> {
+        // System.out.println(k);
+        // System.out.println(v);
+        // });
+
+        // Object[] cards = result.keySet().toArray();
+        // for (Object card : cards) {
+        // System.out.println(card);
+        // }
+
+        // return this.self.getHands().indexOf(cards[0]);
+
     }
 
     @Override
     public int thinkDiscard(Player self, Board board, Set<Integer> indexesNotAllowed) {
         List<Card> commodities = self.getHands().stream().filter(card -> card.getCategory() == CardCategory.COMMODITY)
+                .filter(card -> indexesNotAllowed.stream().noneMatch(index -> index == self.getHands().indexOf(card)))
                 .collect(Collectors.toList());
         if (commodities.size() != 0) {
             return self.getHands().indexOf(commodities.get(0));
         }
-        return 0;
+        return new Random().nextInt(this.self.getHands().size());
     }
 
     @Override

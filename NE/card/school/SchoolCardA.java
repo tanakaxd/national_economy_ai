@@ -5,15 +5,17 @@ import java.util.List;
 import NE.board.Board;
 import NE.player.Player;
 
-public class SchoolLesser extends SchoolCard {
+public class SchoolCardA extends SchoolCard {
 
-    public SchoolLesser() {
+    public SchoolCardA() {
         this.id = 40;
         this.category = CardCategory.EDUCATION;
-        this.name = "学校小";
-        this.isWorked = false;
+        this.name = "学校";
         this.cost = 0;
-        this.isBuildable = true;
+        this.value = 0;
+        this.isWorked = false;
+        this.isBuildable = false;
+        this.isCommons = true;
 
     }
 

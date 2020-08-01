@@ -10,15 +10,15 @@ public class MarketCardB extends MarketCard {
     public MarketCardB() {
         this.id = 31;
         this.category = CardCategory.MARKET;
-        this.name = "売店中";
-        this.cost = 2;
-        this.value = 12;
+        this.name = "市場";
+        this.cost = 0;
+        this.value = 0;
         this.isWorked = false;
-        this.isBuildable = true;
-        this.isCommons = false;
+        this.isBuildable = false;
+        this.isCommons = true;
 
-        this.discards = 1;
-        this.profit = 8;
+        this.discards = 2;
+        this.profit = 12;
     }
 
 }
