@@ -23,6 +23,7 @@ public class SimpleTAI implements IAI {
     private Player self;
     private Board board;
     private Card buildingToWork;
+    private Card secondCardToBuild;
 
     // thinkの結果をそのターン終了まで格納しておくリスト。思考ロックを避けるため
     // 最後の選択カテゴリーを保存しておく、行動失敗したら別カテゴリーを模索
@@ -36,6 +37,8 @@ public class SimpleTAI implements IAI {
 
     @Override
     public List<Integer> thinkUseCard(Player self, Board board, int stucked) {
+
+        this.buildingToWork = null;
 
         this.actions.clear();
         if (stucked == 0) {
@@ -62,6 +65,10 @@ public class SimpleTAI implements IAI {
             isPossible = pickArea(this.topPriority);
 
         } while (!isPossible);
+
+        // TODO
+        this.buildingToWork = this.actions.get(0) == 0 ? this.board.getBuildings().get(this.actions.get(1))
+                : this.self.getBuildings().get(this.actions.get(1));
 
         return this.actions;
     }
@@ -114,13 +121,14 @@ public class SimpleTAI implements IAI {
 
         // 賃金が十分にあるか
         if (isNewStrategy(CardCategory.MARKET)) {
-            if (this.self.getMoney() <= this.self.getWorkers().size() * GameManager.getInstance().getCurrentWage()) {
+            int totalWages = this.self.getWorkers().size() * GameManager.getInstance().getCurrentWage();
+            if (this.self.getMoney() <= totalWages - 8) {
                 this.topPriority = CardCategory.MARKET;
                 return;
             }
         }
 
-        // 消費財が多く、action数に余裕があるか TODO 採石場を除外したい
+        // 消費財が多く、action数に余裕があるか TODO 鉱山を除外したい
         // if (isNewStrategy(CardCategory.INDUSTRY)
         // && this.self.getHands().stream().filter(c -> c.getCategory() ==
         // CardCategory.COMMODITY).count() >= 2
@@ -162,23 +170,71 @@ public class SimpleTAI implements IAI {
     @Override
     public int thinkBuild(Player self, Board board, Set<Integer> indexesNotAllowed) {
         // 建てられるカードをフィルター
-        List<Card> candidates = this.self.getHands().stream().filter(c -> c.isBuildable()).collect(Collectors.toList());
+        List<Card> candidates = this.self.getHands().stream()
+                .filter(c -> c.isBuildable()
+                        && indexesNotAllowed.stream().noneMatch(index -> index == this.self.getHands().indexOf(c)))
+                .collect(Collectors.toList());
         if (candidates.size() == 0)
             return 0;
 
-        Map<Card, Integer> performances = new LinkedHashMap<>();
-        for (Card card : candidates) {
-            performances.put(card, card.getValue() / card.getCost());
+        // Map<Card, Integer> performances = new LinkedHashMap<>();
+        // for (Card card : candidates) {
+        // performances.put(card, card.getValue() / card.getCost(self));
+        // }
+
+        // コストが足りるものの中で高い順に
+        // TODO 地球建設を使えなくなる可能性。
+        // 地球建設の場合、size()-2のコストになる組み合わせを選ぶのが最適。その実装はこのAIではやらない
+        // やっぱやってみた
+        if (this.buildingToWork.getId() == 14) {
+            if (this.secondCardToBuild == null) {// 地球建設で一つ目の建物を聞かれた場合
+                // size()-2のコストになる組み合わせを選びたい
+
+                // まずなるべきコストを計算
+                int totalCostToBe = self.getHands().size() - 2;
+
+                // 1カードのコストの最低値が１だと期待する
+                // 例えば1-6コストのカードが一枚ずつ手札にあるとする
+                // トータルで4コストの組み合わせを探す
+                // そうなるには4-1=3コスト以下のカードが候補になる
+                // candidates = 1,2,3
+                List<Card> filtered = candidates.stream().filter(c -> c.getCost(self) <= totalCostToBe - 1)
+                        .sorted((e1, e2) -> e2.getCost(self) - e1.getCost(self)).collect(Collectors.toList());
+
+                for (int i = 0; i < filtered.size(); i++) {
+                    for (int j = i + 1; j < filtered.size(); j++) {// 自分（indexがi）より一つ先のindexのカードをすべて調べる
+                        Card firstCandidate = filtered.get(i);
+                        Card secondCandidate = filtered.get(j);
+                        if (firstCandidate.getCost(self) + secondCandidate.getCost(self) == totalCostToBe) {
+                            // 二番目に建設するカードを保存しておく
+                            this.secondCardToBuild = secondCandidate;
+                            // 一番目のやつをreturn
+                            return self.getHands().indexOf(firstCandidate);
+                        }
+                    }
+                }
+
+                // 該当する組み合わせがない場合
+                // stuckするが呼び出し側で抜けられる
+                return 0;
+
+            } else {// 地球建設で二つ目の建物を聞かれた場合
+                int index = self.getHands().indexOf(this.secondCardToBuild);
+                this.secondCardToBuild = null;
+                return index;
+            }
+
+        } else {
+
+            List<Card> filtered = candidates.stream().filter(c -> c.getCost(self) <= self.getHands().size() - 1)
+                    .sorted((e1, e2) -> e2.getCost(self) - e1.getCost(self)).collect(Collectors.toList());
+
+            if (filtered.size() == 0)
+                return 0;
+
+            System.out.println(filtered);
+            return this.self.getHands().indexOf(filtered.get(0));
         }
-
-        List<Card> filtered = candidates.stream().filter(c -> c.getCost() <= self.getHands().size() - 1)
-                .sorted(Comparator.comparing(Card::getCost)).collect(Collectors.toList());
-
-        if (filtered.size() == 0)
-            return 0;
-
-        System.out.println(filtered);
-        return this.self.getHands().indexOf(filtered.get(0));
 
         // 費用対効果が一番高いものを選ぶ TODO 並び替えられてない
         // Map<Card, Integer> result = performances.entrySet().stream()
@@ -201,19 +257,31 @@ public class SimpleTAI implements IAI {
 
     @Override
     public int thinkDiscard(Player self, Board board, Set<Integer> indexesNotAllowed) {
-        List<Card> commodities = self.getHands().stream().filter(card -> card.getCategory() == CardCategory.COMMODITY)
+        // TODO 要確認
+        // candidates がゼロ個になることはないと想定している。外部のメソッド次第
+        // 何らかの理由でゼロ個になった。発生頻度は低い。
+        // 状態：その前のターンに研究所ドローでデッキを更新している。大聖堂を二枚ドロー？ 同じアドレス？
+        // ループが一回のみで候補が二枚消えている。その時点では、indexesNotAllowedには構造上一つしか値は入っていないはず。アドレスが重複していたとしか考えられない？
+        List<Card> candidates = self.getHands().stream()
                 .filter(card -> indexesNotAllowed.stream().noneMatch(index -> index == self.getHands().indexOf(card)))
+                .collect(Collectors.toList());
+
+        System.out.println("candidates: " + candidates);
+
+        List<Card> commodities = candidates.stream().filter(card -> card.getCategory() == CardCategory.COMMODITY)
                 .collect(Collectors.toList());
         if (commodities.size() != 0) {
             return self.getHands().indexOf(commodities.get(0));
+        } else {
+            return self.getHands().indexOf(candidates.get(new Random().nextInt(candidates.size())));
         }
-        return new Random().nextInt(this.self.getHands().size());
     }
 
     @Override
     public int thinkSell(Player self, Board board) {
-        // TODO Auto-generated method stub
-        return 0;
+        // 売れるカードがない場合はメソッドが呼び出されないと想定
+        return self.getBuildings().indexOf(self.getBuildings().stream()
+                .filter(c -> c.getCategory() != CardCategory.FACILITY).collect(Collectors.toList()).get(0));
     }
 
 }

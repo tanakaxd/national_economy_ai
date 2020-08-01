@@ -42,11 +42,13 @@ public class AIPlayer extends Player {
         Set<Integer> indexes = new HashSet<>(indexesNotAllowed);
         System.out.println("NOT ALLOWED: " + indexes);
         int count = 0;
-        while (indexes.size() + indexesNotAllowed.size() < cost) {
+        while (indexes.size() < cost + indexesNotAllowed.size()) {
             indexes.add(this.brain.thinkDiscard(this, board, indexes));
             count++;
-            if (count >= 100) {
+            if (count >= 10) {
                 // TODO AIのstuckを予防する
+                System.out.println("infinite loop detected... Auto-piloting initiated");
+
                 break;
             }
         }
@@ -70,8 +72,10 @@ public class AIPlayer extends Player {
         while (indexes.size() < cost) {
             indexes.add(this.brain.thinkDiscard(this, board, indexes));
             count++;
-            if (count >= 100) {
+            if (count >= 10) {
                 // TODO AIのstuckを予防する
+                System.out.println("infinite loop detected... Auto-piloting initiated");
+
                 break;
             }
         }
@@ -88,8 +92,10 @@ public class AIPlayer extends Player {
         while (indexes.size() < amounts) {
             indexes.add(this.brain.thinkBuild(this, board, indexes));
             count++;
-            if (count >= 100) {
+            if (count >= 10) {
                 // TODO AIのstuckを予防する
+                System.out.println("infinite loop detected... Auto-piloting initiated");
+
                 break;
             }
         }

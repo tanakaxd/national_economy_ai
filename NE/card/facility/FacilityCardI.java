@@ -29,4 +29,9 @@ public class FacilityCardI extends FacilityCard {
         return 0;
     }
 
+    @Override
+    public int getCost(Player player) {
+        return player.getVictoryPoint() >= 5 ? this.cost - 4 : this.cost;
+    }
+
 }

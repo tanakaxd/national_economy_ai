@@ -25,28 +25,26 @@ public class ConstructionCardB extends ConstructionCard {
         this.isCommons = false;
         this.isWorked = false;
 
-        this.minHands = 1;
         this.amountsToBuild = 1;
     }
 
     @Override
-    public boolean apply(Player player, Board board) {
+    public boolean doApply(Player player, Board board) {
         List<Card> hands = player.getHands();
-
-        if (hands.size() < this.minHands || this.isWorked)
-            return false;
 
         Display.printChoices(hands);
 
         List<Integer> indexesToBuild = player.askBuild(board, this.amountsToBuild, this);
+        if (indexesToBuild.size() < this.amountsToBuild)
+            return false;
         int indexToBuild = indexesToBuild.get(0);
 
-        int cost = hands.get(indexToBuild).getCost();
+        int cost = hands.get(indexToBuild).getCost(player);
         if (cost + this.amountsToBuild > hands.size())
             return false;
 
         // TODO askした段階で、加工されたリストが送られてくると保証できれば、この処理は簡略化できる可能性がある
-        List<Integer> indexesToDiscard = player.askDiscard(board, cost).stream().distinct()
+        List<Integer> indexesToDiscard = player.askDiscard(board, cost, indexesToBuild).stream().distinct()
                 .sorted(Comparator.reverseOrder()).collect(Collectors.toList());
 
         if (indexesToDiscard.size() < cost)

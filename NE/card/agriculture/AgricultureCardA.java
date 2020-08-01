@@ -23,20 +23,6 @@ public class AgricultureCardA extends AgricultureCard {
         this.isWorked = false;
     }
 
-    protected int id;
-    protected String name;
-    protected CardCategory category;
-    protected int cost;
-    protected int value;
-    protected String description;
-    // protected int amountsInDeck;
-    protected boolean isAgriculture;
-    protected boolean isFactory;
-    protected boolean isFacility;
-    protected boolean isWorked;
-    protected boolean isBuildable;
-    protected boolean isCommons;
-
     @Override
     public boolean apply(Player player, Board board) {
         if (this.isWorked)

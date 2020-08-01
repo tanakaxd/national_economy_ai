@@ -26,7 +26,7 @@ public class FacilityCardC extends FacilityCard {
 
     @Override
     public int calcBonus(Player player) {
-        return player.getVictoryPoint();
+        return player.calcVictoryPointsScore();
     }
 
 }

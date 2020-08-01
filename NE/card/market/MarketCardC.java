@@ -9,7 +9,7 @@ public class MarketCardC extends MarketCard {
 
     public MarketCardC() {
         this.id = 32;
-        this.name = "スーパー";
+        this.name = "スーパーマーケット";
         this.category = CardCategory.MARKET;
         this.cost = 0;
         this.value = 0;

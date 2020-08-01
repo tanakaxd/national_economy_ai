@@ -9,17 +9,22 @@ public class CommodityCard extends Card {
 
     public CommodityCard() {
         this.id = 999;
-        this.category = CardCategory.COMMODITY;
         this.name = "消費財";
-        this.isWorked = false;
+        this.category = CardCategory.COMMODITY;
         this.cost = 0;
+        this.value = 0;
+        this.description = "";
+        this.isAgriculture = false;
+        this.isFactory = false;
+        this.isFacility = false;
         this.isBuildable = false;
+        this.isCommons = false;
+        this.isWorked = false;
 
     }
 
     @Override
     public boolean apply(Player player, Board board) {
-        // TODO Auto-generated method stub
         return false;
     }
 

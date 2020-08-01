@@ -34,7 +34,6 @@ public abstract class Card {
 
     @Override
     public String toString() {
-        // TODO
         String circle = isWorked ? "●" : "○";
         String s = String.format("[%d %s $%d %s]", this.cost, this.name, this.value, circle);
         return s;
@@ -50,13 +49,13 @@ public abstract class Card {
         return name;
     }
 
-    // TODO コストはプレイヤーの所有物件、手札、勝利ポイントによって変動する
-    // public int getCost(Player player) {
-    // return cost;
-    // }
-    public int getCost() {
+    // コストはプレイヤーの所有物件、手札、勝利ポイントによって変動する
+    public int getCost(Player player) {
         return cost;
     }
+    // public int getCost() {
+    // return cost;
+    // }
 
     public void setCost(int cost) {
         this.cost = cost;

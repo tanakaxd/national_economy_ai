@@ -26,32 +26,32 @@ public class ConstructionCardE extends ConstructionCard {
         this.isCommons = false;
         this.isWorked = false;
 
-        this.minHands = 2;
         this.amountsToBuild = 2;
     }
 
     @Override
-    public boolean apply(Player player, Board board) {
+    public boolean doApply(Player player, Board board) {
 
         List<Card> hands = player.getHands();
-
-        if (hands.size() < this.minHands || this.isWorked)
-            return false;
 
         Display.printChoices(hands);
 
         List<Integer> indexesToBuild = player.askBuild(board, this.amountsToBuild, this);
+        // 一枚だけ選択して返してくる可能性がある
+        if (indexesToBuild.size() < this.amountsToBuild)
+            return false;
 
-        int totalCost = indexesToBuild.stream().map(i -> hands.get(i).getCost()).mapToInt(Integer::intValue).sum();
+        int totalCost = indexesToBuild.stream().map(i -> hands.get(i).getCost(player)).mapToInt(Integer::intValue)
+                .sum();
 
         if (totalCost + this.amountsToBuild > hands.size())
             return false;
 
         // TODO askした段階で、加工されたリストが送られてくると保証できれば、この処理は簡略化できる可能性がある
-        List<Integer> indexesToDiscard = player.askDiscard(board, cost, indexesToBuild).stream().distinct()
+        List<Integer> indexesToDiscard = player.askDiscard(board, totalCost, indexesToBuild).stream().distinct()
                 .sorted(Comparator.reverseOrder()).collect(Collectors.toList());
 
-        if (indexesToDiscard.size() < cost)
+        if (indexesToDiscard.size() < totalCost)
             return false;
 
         // 建てるカードの参照を取得

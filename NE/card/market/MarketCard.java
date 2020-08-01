@@ -21,6 +21,12 @@ public abstract class MarketCard extends Card {
         }
 
         List<Integer> indexesToDiscard = player.askDiscard(board, this.discards);
+        if (indexesToDiscard.size() < this.discards)
+            return false;
+
+        // TODO 手札が足りていても、帰ってきたindexの個数が不十分な場合はあり得る
+        // AIがハードスタックするのを避けるため、強制でループを抜けさせた場合が危ない
+        // その場合を考えてもう一度チェックすべきか
 
         for (Integer integer : indexesToDiscard) {
             player.discard(board, integer);

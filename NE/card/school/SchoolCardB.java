@@ -19,7 +19,6 @@ public class SchoolCardB extends SchoolCard {
         this.isFacility = false;
         this.isBuildable = false;
         this.isCommons = true;
-        this.isWorked = false;
     }
 
     @Override

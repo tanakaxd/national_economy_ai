@@ -9,6 +9,7 @@ import NE.card.Card.CardCategory;
 import NE.card.construction.ConstructionCardA;
 import NE.card.industry.IndustryCardA;
 import NE.card.industry.IndustryCardB;
+import NE.card.industry.IndustryCardH;
 import NE.card.school.SchoolCardA;
 
 public class Board {
@@ -25,15 +26,21 @@ public class Board {
         this.buildings.add(new ConstructionCardA());
         this.buildings.add(new SchoolCardA());
         this.buildings.add(new IndustryCardB());
+        // this.buildings.add(new IndustryCardH());
+        // this.buildings.add(new ConstructionCardE());
     }
 
     public void refreshDeck() {
         System.out.println("deck refreshed!");
         List<Card> filteredTrash = this.trash.stream().filter(c -> c.getCategory() != CardCategory.COMMODITY)
                 .collect(Collectors.toList());
+        System.out.println(filteredTrash);
         while (filteredTrash.size() > 0) {
             this.deck.addCard(filteredTrash.remove(0));
         }
+        // 破壊的メソッドであることに注意
+        // 参照を取得して新しいリストを作っているのでclearしないと、trashにはカードが残ったままでdeck内と重複して存在することになる
+        this.trash.clear();
     }
 
     public Card draw() {

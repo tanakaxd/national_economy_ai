@@ -28,6 +28,10 @@ public class IndustryCardG extends IndustryCard {
         this.discards = 0;
     }
 
-    // TODO getCost
+    @Override
+    public int getCost(Player player) {
+
+        return (int) (this.cost - player.getBuildings().stream().filter(c -> c.isFactory()).count());
+    }
 
 }

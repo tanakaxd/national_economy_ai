@@ -59,6 +59,8 @@ public abstract class Player {
     // ただし、askBuildと別に聞いているため、建てるカードと捨てるカードが被る可能性が出てくることに注意
     public abstract List<Integer> askDiscard(Board board, int cost);
 
+    // overloadでかぶりを禁止するメソッドも作った。例えば、建築系ではこっちを使いたい。
+    // 上を消してこっちに統一する方法もあるが、必要ない場合にいちいちnullを代入することになる
     public abstract List<Integer> askDiscard(Board board, int cost, List<Integer> indexesNotAllowed);
 
     public abstract List<Integer> askBuild(Board board, int amounts, Card card);
@@ -68,6 +70,7 @@ public abstract class Player {
         try {
             board.getTrash().add(this.hands.remove(index));
         } catch (IndexOutOfBoundsException e) {
+            e.printStackTrace();
             board.getTrash().add(this.hands.remove(0));
         }
     }
@@ -161,7 +164,7 @@ public abstract class Player {
                 + calcFacilityBonus();
     }
 
-    private int calcVictoryPointsScore() {
+    public int calcVictoryPointsScore() {
         int ex = this.victoryPoint % 3;
         int score = this.victoryPoint / 3 * 10 + ex;
         return score;

@@ -12,6 +12,10 @@ import NE.player.Player;
 
 public class TAI implements IAI {
 
+    // 思考順序
+    // 使えるカードをすべてピックする
+    // カードの基礎価値、カードのカテゴリー、状況（ターン数、アクション数、手札枚数、所有物件、労働者数、GDP）、personalityのすべてを変数としてカードの価値を計算
+
     private List<CardCategory> priority;
     private List<CardCategory> favor;
     private List<List<Integer>> memory = new ArrayList<>();// thinkの結果をそのターン終了まで格納しておくリスト。思考ロックを避けるため

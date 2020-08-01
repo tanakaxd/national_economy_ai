@@ -14,12 +14,15 @@ import NE.card.market.MarketCardB;
 import NE.card.market.MarketCardC;
 import NE.card.market.MarketCardD;
 import NE.card.market.MarketCardE;
+import NE.card.school.SchoolCardB;
 import NE.card.school.SchoolCardC;
+import NE.card.school.SchoolCardD;
 import NE.display.Display;
 import NE.player.HumanPlayer;
 import NE.player.Player;
 import NE.player.Worker;
 import NE.player.ai.AIPlayer;
+import NE.player.ai.RandomAI;
 import NE.player.ai.SimpleTAI;
 
 public class GameManager {
@@ -35,10 +38,10 @@ public class GameManager {
 
     // game settings
     private int maxTurn = 9;
-    private int cardsInDeck = 40;
+    private int cardsInDeck = 40;// when random
     private boolean isSinglePlay;
     private boolean hasManyPlayers;// 3人以上
-    private boolean isRandomDeck = true;
+    private boolean isRandomDeck = false;
 
     // AI settings
     private boolean isAITransparent = true;
@@ -51,23 +54,24 @@ public class GameManager {
 
     public void init() {
         this.board = new Board(this.cardsInDeck);
-        // this.players.add(new HumanPlayer(this.board));
+
+        this.players.add(new HumanPlayer(this.board));
         this.players.add(new AIPlayer(this.board, new SimpleTAI()));
         // this.players.add(new AIPlayer(this.board, new RandomAI()));
         this.players.add(new AIPlayer(this.board, new SimpleTAI()));
         this.players.add(new AIPlayer(this.board, new SimpleTAI()));
-        this.players.add(new AIPlayer(this.board, new SimpleTAI()));
+        // this.players.add(new AIPlayer(this.board, new SimpleTAI()));
         // this.players.add(new AIPlayer(this.board, new RandomAI()));
         // this.players.add(new AIPlayer(this.board, new RandomAI()));
         // this.players.add(new AIPlayer(this.board, new RandomAI()));
 
         this.publicBuildings.add(new MarketCardA());
         this.publicBuildings.add(new MarketCardB());
-        this.publicBuildings.add(new SchoolCardC());
+        this.publicBuildings.add(new SchoolCardB());
         this.publicBuildings.add(new MarketCardC());
         this.publicBuildings.add(new SchoolCardC());
         this.publicBuildings.add(new MarketCardD());
-        this.publicBuildings.add(new SchoolCardC());
+        this.publicBuildings.add(new SchoolCardD());
         this.publicBuildings.add(new MarketCardE());
 
         // playerにカードを配る TODO
@@ -142,15 +146,26 @@ public class GameManager {
 
     private void displayPlayerInfo(Player currentPlayer) {
         System.out.println();
+        System.out.println("-------------------------");
+        System.out.println("CurrentTurn: " + this.currentTurn);
+        System.out.println("DeckCounter: " + this.board.getDeck().getDeckSize());
+        System.out.println("TrashCounter: " + this.board.getTrash().size());
+        System.out.println();
         System.out.println("Name: " + currentPlayer.getName());
         System.out.println();
         System.out.println("ActionCounts: " + currentPlayer.getActionCount());
         System.out.println("OwnedWorkers: " + currentPlayer.getWorkers().size());
         System.out.println("GDP: " + this.board.getGdp());
-        System.out.println("Score: " + currentPlayer.getScore());
+        System.out.println("ExpectedWages: " + currentPlayer.getWorkers().size() * this.currentWage);
         System.out.println("Money: " + currentPlayer.getMoney());
+        System.out.println("Debt: " + -currentPlayer.getDebt() + " => " + currentPlayer.getDebt() * 3);
+        System.out.println("Score: " + currentPlayer.getScore());
+        System.out.println(
+                "VictoryPoints: " + currentPlayer.getVictoryPoint() + " => " + currentPlayer.calcVictoryPointsScore());
+        System.out.println("HandsCounter: " + currentPlayer.getHands().size());
         System.out.println("Hands: " + currentPlayer.getHands());
         System.out.println("Owned Buildings: " + currentPlayer.getBuildings());
+        System.out.println("-------------------------");
 
     }
 
@@ -162,11 +177,6 @@ public class GameManager {
 
         // 賃金上昇処理
         inflateWage();
-
-        // 公共の建物を建てる TODO
-        // 仮仕様でランダムなカードを公共エリアに
-        // this.board.getBuildings().add(board.getDeck().draw());
-        // this.board.getBuildings().add(new SchoolLesser());
 
         // 全てのフィールド上のカードを労働可能にする
         this.board.refreshAllBuildings();
@@ -281,6 +291,7 @@ public class GameManager {
                 int option;
                 if (count > 10) {
                     option = new Random().nextInt(ai.getBuildings().size());
+                    System.out.println("infinite loop detected... Auto-piloting initiated");
                 } else {
                     option = ai.getBrain().thinkSell(ai, this.board);
                 }
@@ -407,9 +418,9 @@ public class GameManager {
     }
 
     // TODO
-    public void addTrash(Card c) {
-        this.board.getTrash().add(c);
-    }
+    // public void addTrash(Card c) {
+    // this.board.getTrash().add(c);
+    // }
 
     // #region setter/getter
     public static boolean isAITransparent() {

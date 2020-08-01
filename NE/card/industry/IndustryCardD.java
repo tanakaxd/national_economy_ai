@@ -28,8 +28,9 @@ public class IndustryCardD extends IndustryCard {
         this.discards = 2;
     }
 
-    // TODO 自分の所有物件によってコストを変える必要がある
-    // Card#getCostのsignitureを書き換える必要があるかも
-    // 一応やろうと思えば割と簡単にできることはチェック済み
-    // 大聖堂とかもどのみち同じか
+    @Override
+    public int getCost(Player player) {
+        return player.getBuildings().stream().anyMatch(c -> c.getCategory() == CardCategory.AGRICULTURE) ? this.cost - 1
+                : this.cost;
+    }
 }
