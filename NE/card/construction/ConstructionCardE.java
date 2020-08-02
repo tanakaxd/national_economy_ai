@@ -85,7 +85,7 @@ public class ConstructionCardE extends ConstructionCard {
         }
 
         // draw
-        if (hands.size() == 0) {
+        if (hands.isEmpty()) {
             for (int i = 0; i < 3; i++) {
                 player.draw(board);
             }

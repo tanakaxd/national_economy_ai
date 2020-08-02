@@ -26,7 +26,7 @@ public class FacilityCardA extends FacilityCard {
 
     @Override
     public int calcBonus(Player player) {
-        return player.getHands().size() == 0 ? 8 : 0;
+        return player.getHands().isEmpty() ? 8 : 0;
     }
 
 }

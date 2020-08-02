@@ -17,6 +17,7 @@ public abstract class Player {
     protected List<Card> hands = new LinkedList<>();
     protected List<Card> buildings = new ArrayList<>();
     protected List<Worker> workers = new ArrayList<>();
+    protected List<Card> buildingsToWorkThisTurn = new ArrayList<>();
     // TODO trashとdeck
     // protected List<Card> trash;
 

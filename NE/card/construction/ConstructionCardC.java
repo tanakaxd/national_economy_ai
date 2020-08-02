@@ -15,7 +15,7 @@ public class ConstructionCardC extends ConstructionCard {
         this.id = 12;
         this.name = "建築会社";
         this.category = CardCategory.CONSTRUCTION;
-        this.cost = 1;
+        this.cost = 2;
         this.value = 10;
         this.description = "";
         this.isAgriculture = false;

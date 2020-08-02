@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 
-import javax.xml.catalog.Catalog;
-
 public class Display {
     public static <T> void printChoices(List<T> l) {
         for (int i = 0; i < l.size(); i++) {
@@ -60,5 +58,19 @@ public class Display {
             return 0;
         }
         return new Random().nextInt(maxExclusive);
+    }
+
+    public static double RandomGaussian(double average, double sigma) {
+
+        double X, Y;
+        double Z1;
+
+        X = Math.random();
+        Y = Math.random();
+
+        Z1 = sigma * Math.sqrt(-2.0 * Math.log(X)) * Math.cos(2.0 * Math.PI * Y) + average;
+        // Z2 = Math.Sqrt(-2.0 * Math.Log(X)) * Math.Sin(2.0 * Math.PI * Y);
+
+        return Z1;
     }
 }

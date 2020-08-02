@@ -22,6 +22,7 @@ import NE.player.HumanPlayer;
 import NE.player.Player;
 import NE.player.Worker;
 import NE.player.ai.AIPlayer;
+import NE.player.ai.RandomAI;
 import NE.player.ai.SimpleTAI;
 import NE.player.ai.TAI;
 
@@ -44,9 +45,9 @@ public class GameManager {
     private boolean isRandomDeck = false;
 
     // AI settings
-    private boolean isAITransparent = true;
+    private boolean isAITransparent = false;
     private int waitTime = 0;
-    private int maxStucks = 20;
+    private int maxStucks = 10;
 
     private GameManager() {
 
@@ -57,10 +58,12 @@ public class GameManager {
 
         // this.players.add(new HumanPlayer(this.board));
         this.players.add(new AIPlayer(this.board, new TAI()));
+        this.players.add(new AIPlayer(this.board, new TAI()));
+        this.players.add(new AIPlayer(this.board, new TAI()));
         // this.players.add(new AIPlayer(this.board, new RandomAI()));
-        this.players.add(new AIPlayer(this.board, new SimpleTAI()));
-        this.players.add(new AIPlayer(this.board, new SimpleTAI()));
         // this.players.add(new AIPlayer(this.board, new SimpleTAI()));
+        // this.players.add(new AIPlayer(this.board, new SimpleTAI()));
+        this.players.add(new AIPlayer(this.board, new TAI()));
         // this.players.add(new AIPlayer(this.board, new RandomAI()));
         // this.players.add(new AIPlayer(this.board, new RandomAI()));
         // this.players.add(new AIPlayer(this.board, new RandomAI()));
@@ -337,7 +340,7 @@ public class GameManager {
                     break;
             }
 
-            if (area.size() == 0) {
+            if (area.isEmpty()) {
                 System.out.println("選択可能なカードが存在しません");
                 continue;
             }
@@ -382,17 +385,19 @@ public class GameManager {
             switch (areaChoice) {
                 case 0:
                     area = this.board.getBuildings();
-                    Display.printChoices(this.board.getBuildings());
+                    if (this.isAITransparent)
+                        Display.printChoices(this.board.getBuildings());
                     break;
                 case 1:
                     area = currentPlayer.getBuildings();
-                    Display.printChoices(currentPlayer.getBuildings());
+                    if (this.isAITransparent)
+                        Display.printChoices(currentPlayer.getBuildings());
                     break;
                 default:
                     area = new ArrayList<>();
             }
 
-            if (area.size() == 0) {
+            if (area.isEmpty()) {
                 continue;
             }
 
@@ -415,6 +420,7 @@ public class GameManager {
             }
 
         } while (!done);
+        // TODO このターン労働したカードを取得しておく
     }
 
     // TODO

@@ -44,7 +44,7 @@ public class Board {
     }
 
     public Card draw() {
-        if (this.deck.getDeckSize() == 0) {
+        if (this.deck.getCards().isEmpty()) {
             refreshDeck();
         }
         return this.deck.draw();

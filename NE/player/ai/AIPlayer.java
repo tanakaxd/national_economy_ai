@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import NE.board.Board;
 import NE.card.Card;
 import NE.display.Display;
+import NE.main.GameManager;
 import NE.player.Player;
 
 public class AIPlayer extends Player {
@@ -21,7 +22,7 @@ public class AIPlayer extends Player {
     public AIPlayer(Board board, IAI brain) {
         super(board);
         this.brain = brain;
-        this.name = "AI-" + id + ":brain=" + this.brain.getClass().getName();
+        this.name = "AI-" + id + ":BRAIN=" + this.brain.getClass().getName() + " INFO=" + this.brain.toString();
         id++;
     }
 
@@ -37,7 +38,8 @@ public class AIPlayer extends Player {
     public List<Integer> askDiscard(Board board, int cost, List<Integer> indexesNotAllowed) {
 
         System.out.println("捨てるカードを" + cost + "枚選んでください");
-        Display.printChoices(this.hands);
+        if (GameManager.isAITransparent())
+            Display.printChoices(this.hands);
         // 許可されていないindexを最初に入れてしまう
         Set<Integer> indexes = new HashSet<>(indexesNotAllowed);
         System.out.println("NOT ALLOWED: " + indexes);
@@ -66,7 +68,8 @@ public class AIPlayer extends Player {
     public List<Integer> askDiscard(Board board, int cost) {
 
         System.out.println("捨てるカードを" + cost + "枚選んでください");
-        Display.printChoices(this.hands);
+        if (GameManager.isAITransparent())
+            Display.printChoices(this.hands);
         Set<Integer> indexes = new HashSet<>();
         int count = 0;
         while (indexes.size() < cost) {
@@ -86,7 +89,8 @@ public class AIPlayer extends Player {
     @Override
     public List<Integer> askBuild(Board board, int amounts, Card card) {
         System.out.println("建設するカードを選んでください");
-        Display.printChoices(this.hands);
+        if (GameManager.isAITransparent())
+            Display.printChoices(this.hands);
         Set<Integer> indexes = new HashSet<>();
         int count = 0;
         while (indexes.size() < amounts) {

@@ -174,7 +174,7 @@ public class SimpleTAI implements IAI {
                 .filter(c -> c.isBuildable()
                         && indexesNotAllowed.stream().noneMatch(index -> index == this.self.getHands().indexOf(c)))
                 .collect(Collectors.toList());
-        if (candidates.size() == 0)
+        if (candidates.isEmpty())
             return 0;
 
         // Map<Card, Integer> performances = new LinkedHashMap<>();
@@ -229,7 +229,7 @@ public class SimpleTAI implements IAI {
             List<Card> filtered = candidates.stream().filter(c -> c.getCost(self) <= self.getHands().size() - 1)
                     .sorted((e1, e2) -> e2.getCost(self) - e1.getCost(self)).collect(Collectors.toList());
 
-            if (filtered.size() == 0)
+            if (filtered.isEmpty())
                 return 0;
 
             System.out.println(filtered);
