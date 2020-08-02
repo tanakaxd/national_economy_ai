@@ -7,7 +7,7 @@ import NE.player.Player;
 
 public abstract class Card {
     public enum CardCategory {
-        CONSTRUCTION, AGRICULTURE, FACILITY, INDUSTRY, EDUCATION, COMMODITY, MARKET
+        AGRICULTURE, CONSTRUCTION, INDUSTRY, MARKET, EDUCATION, FACILITY, COMMODITY,
     }
 
     protected int id;

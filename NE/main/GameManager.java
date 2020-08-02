@@ -22,8 +22,8 @@ import NE.player.HumanPlayer;
 import NE.player.Player;
 import NE.player.Worker;
 import NE.player.ai.AIPlayer;
-import NE.player.ai.RandomAI;
 import NE.player.ai.SimpleTAI;
+import NE.player.ai.TAI;
 
 public class GameManager {
 
@@ -46,7 +46,7 @@ public class GameManager {
     // AI settings
     private boolean isAITransparent = true;
     private int waitTime = 0;
-    private int maxStucks = 5;
+    private int maxStucks = 20;
 
     private GameManager() {
 
@@ -55,8 +55,8 @@ public class GameManager {
     public void init() {
         this.board = new Board(this.cardsInDeck);
 
-        this.players.add(new HumanPlayer(this.board));
-        this.players.add(new AIPlayer(this.board, new SimpleTAI()));
+        // this.players.add(new HumanPlayer(this.board));
+        this.players.add(new AIPlayer(this.board, new TAI()));
         // this.players.add(new AIPlayer(this.board, new RandomAI()));
         this.players.add(new AIPlayer(this.board, new SimpleTAI()));
         this.players.add(new AIPlayer(this.board, new SimpleTAI()));
@@ -146,11 +146,11 @@ public class GameManager {
 
     private void displayPlayerInfo(Player currentPlayer) {
         System.out.println();
-        System.out.println("-------------------------");
         System.out.println("CurrentTurn: " + this.currentTurn);
         System.out.println("DeckCounter: " + this.board.getDeck().getDeckSize());
         System.out.println("TrashCounter: " + this.board.getTrash().size());
         System.out.println();
+        System.out.println("--------------PLAYER INFO----------------");
         System.out.println("Name: " + currentPlayer.getName());
         System.out.println();
         System.out.println("ActionCounts: " + currentPlayer.getActionCount());
