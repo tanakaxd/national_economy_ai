@@ -18,13 +18,12 @@ import NE.card.school.SchoolCardB;
 import NE.card.school.SchoolCardC;
 import NE.card.school.SchoolCardD;
 import NE.display.Display;
+import NE.player.AIPlayer;
 import NE.player.HumanPlayer;
 import NE.player.Player;
 import NE.player.Worker;
-import NE.player.ai.AIPlayer;
-import NE.player.ai.RandomAI;
-import NE.player.ai.SimpleTAI;
-import NE.player.ai.TAI;
+import NE.player.ai.tai.TAI;
+import NE.player.ai.tai.TAIGeneExtractor;
 
 public class GameManager {
 
@@ -261,6 +260,9 @@ public class GameManager {
             int rank = i + 1;
             System.out.println(rank + ": " + rankings.get(i).getName() + " score=" + rankings.get(i).getScore());
         }
+
+        // TODO TAI用 データを送る
+        TAIGeneExtractor.getInstance().terminate(rankings);
     }
 
     private boolean isAllPlayersDone() {

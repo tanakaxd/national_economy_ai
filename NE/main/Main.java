@@ -1,12 +1,13 @@
 package NE.main;
 
-import NE.board.Board;
-import NE.board.Deck;
-import NE.display.Display;
-import NE.player.Player;
+import java.io.IOException;
+
+import NE.player.ai.tai.TAIGeneExtractor;
 
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
+        TAIGeneExtractor.getInstance().init();
+
         GameManager.getInstance().init();
         GameManager.getInstance().run();
     }

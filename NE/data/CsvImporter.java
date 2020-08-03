@@ -7,9 +7,18 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import NE.player.ai.TAI;
+import NE.player.ai.tai.TAI;
 
 public class CsvImporter {
+
+    private static CsvImporter theInstance;
+    private Map<Integer, Integer> cardData;
+
+    private CsvImporter() {
+
+        loadCardData();
+
+    }
 
     public static void main(String[] args) throws java.io.IOException {
         // int[][] ret = Files
@@ -39,12 +48,20 @@ public class CsvImporter {
         // }
         // System.out.println(bool);
         // System.out.println(s);
-
-        new TAI();
-
     }
 
-    public static Map<Integer, Integer> loadCardData() {
+    public static CsvImporter getInstance() {
+        if (theInstance == null) {
+            theInstance = new CsvImporter();
+        }
+        return theInstance;
+    }
+
+    public Map<Integer, Integer> getCardData() {
+        return this.cardData;
+    }
+
+    public void loadCardData() {
         int[][] ret;
         try {
             ret = Files
@@ -63,9 +80,9 @@ public class CsvImporter {
                     .toArray(int[][]::new);
 
             // 得られたboolean二次元配列の中身をコンソールに出力
-            for (int[] array : ret) {
-                System.out.println(Arrays.toString(array));
-            }
+            // for (int[] array : ret) {
+            // System.out.println(Arrays.toString(array));
+            // }
 
             Map<Integer, Integer> result = new HashMap<>();
 
@@ -74,12 +91,11 @@ public class CsvImporter {
                 result.put(is[0], is[1]);
             }
 
-            System.out.println(result);
-            return result;
+            // System.out.println(result);
+            this.cardData = result;
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return null;
     }
 
 }

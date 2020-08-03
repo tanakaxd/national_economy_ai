@@ -1,4 +1,4 @@
-package NE.player.ai;
+package NE.player;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -11,7 +11,7 @@ import NE.board.Board;
 import NE.card.Card;
 import NE.display.Display;
 import NE.main.GameManager;
-import NE.player.Player;
+import NE.player.ai.IAI;
 
 public class AIPlayer extends Player {
 

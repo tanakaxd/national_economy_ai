@@ -1,15 +1,14 @@
-package NE.player.ai;
+package NE.player.ai.tai;
 
 import static NE.card.Card.CardCategory.AGRICULTURE;
 import static NE.card.Card.CardCategory.CONSTRUCTION;
 import static NE.card.Card.CardCategory.EDUCATION;
-import static NE.card.Card.CardCategory.FACILITY;
 import static NE.card.Card.CardCategory.INDUSTRY;
 import static NE.card.Card.CardCategory.MARKET;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -21,9 +20,9 @@ import NE.board.Board;
 import NE.card.Card;
 import NE.card.Card.CardCategory;
 import NE.data.CsvImporter;
-import NE.display.Display;
 import NE.main.GameManager;
 import NE.player.Player;
+import NE.player.ai.IAI;
 
 public class TAI implements IAI {
 
@@ -65,20 +64,23 @@ public class TAI implements IAI {
     // カードごとに評価関数を作る方法が一つ、カードの情報を読み取って動的にカード効果を評価する関数を作るのが一つ
     // #endregion
 
-    private final Map<Integer, Integer> CARDS_BASE_EVALUATION = CsvImporter.loadCardData();// idと基礎評価
+    private final Map<Integer, Integer> CARDS_BASE_EVALUATION = CsvImporter.getInstance().getCardData();// idと基礎評価
     private Map<CardCategory, Integer> categoryValue = new HashMap<>();
     // private Set<CategoryValue> categoryValues = new HashSet<>();
-    private final Map<CardCategory, Double> PERSONALITY_FAVOR = new HashMap<CardCategory, Double>() {
-        private static final long serialVersionUID = -8080332401300985295L;
-        {
-            put(AGRICULTURE, Display.RandomGaussian(1, 0.2));
-            put(CONSTRUCTION, Display.RandomGaussian(1, 0.2));
-            put(INDUSTRY, Display.RandomGaussian(1, 0.2));
-            put(MARKET, Display.RandomGaussian(1, 0.2));
-            put(EDUCATION, Display.RandomGaussian(1, 0.2));
-            put(FACILITY, Display.RandomGaussian(1, 0.2));
-        }
-    };
+    // private final Map<CardCategory, Double> PERSONALITY_FAVOR = new
+    // HashMap<CardCategory, Double>() {
+    // private static final long serialVersionUID = -8080332401300985295L;
+    // {
+    // put(AGRICULTURE, Display.RandomGaussian(1, 0.2));
+    // put(CONSTRUCTION, Display.RandomGaussian(1, 0.2));
+    // put(INDUSTRY, Display.RandomGaussian(1, 0.2));
+    // put(MARKET, Display.RandomGaussian(1, 0.2));
+    // put(EDUCATION, Display.RandomGaussian(1, 0.2));
+    // put(FACILITY, Display.RandomGaussian(1, 0.2));
+    // }
+    // };
+    private final LinkedHashMap<CardCategory, Integer> PERSONALITY_FAVOR = new LinkedHashMap<CardCategory, Integer>(
+            TAIGeneLoader.getInstance().getPersonalityData());
     private List<Card> orderedCards = new ArrayList<>();// thinkの結果をそのターン終了まで格納しておくリスト。思考ロックを避けるため
     private double huristicRate = 0.1;// ロジックを無視し思考ロックを打開する確率
     private int categoryValueCap = 50;
@@ -108,8 +110,8 @@ public class TAI implements IAI {
         // ((0~50) + (0~50)*(0.5~1.5))*(0~2)
 
         double value = (this.CARDS_BASE_EVALUATION.get(card.getId())
-                + this.categoryValue.get(card.getCategory()) * this.PERSONALITY_FAVOR.get(card.getCategory()))
-                * calcSituationCoefficient(card.getId());
+                + this.categoryValue.get(card.getCategory()) * this.PERSONALITY_FAVOR.get(card.getCategory()) / 100)
+                * calcSituationCoefficientToWork(card.getId());
 
         return (int) value;
     }
@@ -184,14 +186,15 @@ public class TAI implements IAI {
         // 所有物件/資金
         // 多い MARKETは後回し
         if (getAffordableProperty() >= 25) {
-            addCategoryValue(MARKET, -50);
             addCategoryValue(EDUCATION, 50);
-
-        } else if (getAffordableProperty() >= 0) {
+            addCategoryValue(MARKET, -50);
+        } else if (getAffordableProperty() >= 5) {
+            addCategoryValue(EDUCATION, 25);
             addCategoryValue(MARKET, -25);
+        } else if (getAffordableProperty() >= 0) {
         } else {
             addCategoryValue(CONSTRUCTION, 25);
-            addCategoryValue(MARKET, 25);
+            addCategoryValue(MARKET, 50);
             addCategoryValue(EDUCATION, -50);
         }
 
@@ -227,15 +230,53 @@ public class TAI implements IAI {
 
     }
 
-    private double calcSituationCoefficient(int id) {
+    private double calcSituationCoefficientToWork(int id) {
         double result = 0;
         switch (id) {
-            case 0:
+            case 0:// 芋畑
                 result = getHandSize() >= 3 ? 0 : getHandSize() == 2 ? 0.5 : 1.5;
+                return result;
+            case 22:// 製鉄所
+                result = this.self.getUseMine() ? 2 : 0;
+                return result;
+            case 37:// 観光牧場
+                result = this.self.getBuildings().stream().filter(c -> c.getCategory() == CardCategory.COMMODITY)
+                        .count() * 0.5;
+                return result;
+            case 43:// 専門学校
+                result = getCurrentTurn() == 8 ? 2 : 0.5;
                 return result;
             default:
                 return 1;
         }
+    }
+
+    private double calcSituationCoefficientToBuild(int id) {
+        double result = 1;
+        // TODO 邪道かも
+        if (id >= 50 && id <= 59) {// facility
+            if (getAffordableProperty() >= 0) {
+                result = 2;
+            } else {
+                result = 0;
+            }
+        }
+        switch (id) {
+            case 23:// 食品工場
+                int count = (int) this.self.getBuildings().stream().filter(c -> c.isAgriculture()).count();
+                result = count >= 2 ? 3 : count >= 1 ? 2 : 1;
+                return result;
+            case 26:// 工業団地
+                int count2 = (int) this.self.getBuildings().stream().filter(c -> c.isFactory()).count();
+                result = 1 + count2 * 0.5;
+                return result;
+            case 58:// 大聖堂
+                result = this.self.getVictoryPoint() >= 5 ? 3 : 0;
+                return result;
+            default:
+                return result;
+        }
+
     }
 
     private List<Card> getBuildingsFromDigit(int digit) {
@@ -338,7 +379,6 @@ public class TAI implements IAI {
         if (candidates.isEmpty())
             return 0;
 
-        // コストが足りるものの中で、base valueが高い順に
         // 地球建設の場合、size()-2のコストになる組み合わせを選ぶのが最適
         if (this.buildingToWork.getId() == 14) {
             if (this.secondCardToBuild == null) {// 地球建設で一つ目の建物を聞かれた場合
@@ -381,15 +421,19 @@ public class TAI implements IAI {
 
         } else {
             // 地球建設以外の場合
-
-            List<Card> filtered = candidates.stream().filter(c -> c.getCost(self) <= self.getHands().size() - 1).sorted(
-                    (e1, e2) -> this.CARDS_BASE_EVALUATION.get(e1.getId()) - this.CARDS_BASE_EVALUATION.get(e2.getId()))
+            // TODO コストが足りるものの中で、base valueが高い順に、ソート順評価に状況に応じた係数をかける
+            // 建てられるものをフィルターにかける→Cardと評価のMapにする→評価が一番高いCardを取得
+            // ソートはいらない、O(n)のO(nlogn)差が出るはず
+            List<Card> filtered = candidates.stream().filter(c -> c.getCost(self) <= self.getHands().size() - 1)
+                    .sorted((e1, e2) -> (int) (this.CARDS_BASE_EVALUATION.get(e1.getId())
+                            * calcSituationCoefficientToBuild(e1.getId())
+                            - this.CARDS_BASE_EVALUATION.get(e2.getId()) * calcSituationCoefficientToBuild(e2.getId())))
                     .collect(Collectors.toList());
 
             if (filtered.isEmpty())
                 return 0;
 
-            System.out.println(filtered);
+            System.out.println("priority to build: " + filtered);
             return this.self.getHands().indexOf(filtered.get(0));
         }
 
@@ -424,7 +468,9 @@ public class TAI implements IAI {
     public String toString() {
 
         return this.PERSONALITY_FAVOR.entrySet().stream()
-                .collect(Collectors.toMap(p -> p.getKey(), p -> String.format("%.2f", p.getValue()))).toString();
+                // .collect(Collectors.toMap(p -> p.getKey(), p -> String.format("%d",
+                // p.getValue()))).toString();
+                .collect(Collectors.toList()).toString();
     }
 
     // #region shorthand getter
@@ -485,6 +531,10 @@ public class TAI implements IAI {
             this.score = 0;
 
         }
+    }
+
+    public Map<CardCategory, Integer> getPERSONALITY_FAVOR() {
+        return PERSONALITY_FAVOR;
     }
 
     // private class CategoryValueMap<CardCategory, Integer> extends
