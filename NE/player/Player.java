@@ -18,6 +18,7 @@ public abstract class Player {
     protected List<Card> buildings = new ArrayList<>();
     protected List<Worker> workers = new ArrayList<>();
     protected List<Card> buildingsToWorkThisTurn = new ArrayList<>();
+    protected List<Card> history = new ArrayList<>();
     // TODO trashとdeck
     // protected List<Card> trash;
 
@@ -216,6 +217,10 @@ public abstract class Player {
         this.victoryPoint += i;
     }
 
+    public void addHistory(Card cardToWork) {
+        this.history.add(cardToWork);
+    }
+
     // #region setter&getter
 
     public int getDebt() {
@@ -333,6 +338,10 @@ public abstract class Player {
 
     public boolean getUseMine() {
         return this.useMine;
+    }
+
+    public List<Card> getHistory() {
+        return history;
     }
 
     // #endregion

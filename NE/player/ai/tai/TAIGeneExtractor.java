@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import NE.card.Card.CardCategory;
 import NE.player.AIPlayer;
@@ -21,7 +22,7 @@ import NE.player.Player;
 public class TAIGeneExtractor {
     // TAIのpersonalityデータをゲームが始まる前に抽出して、ゲームが終わった時書き出す
     // 5試合、計20人分のデータになるまで付け加えていき、20人になったら別ファイルに書いていく
-    // 読み込むときに20人のデータが集まっていたら、MergeOperatorに報せる
+    // 読み込むときに20人のデータが集まっていたら、MergeOperatorに報せて次世代を産ませる
     // つまり、このクラスはデータを読み込んで状況を確認することと、データを書き込むことを両方行う
 
     // 一つのデータが持つべき情報。generation, index, ranking, score, fitness, personality
@@ -30,12 +31,12 @@ public class TAIGeneExtractor {
     private static TAIGeneExtractor theInstance;
     private final String PATH = "NE/player/ai/tai/TAIPersonalityScoreData.csv";
 
-    private int currentGeneration = 1;// ファイルを読み込んだとき、一番最新のデータのgenerationを取得する
-    private int lastIndex;// ファイルを読み込んだとき、一番最後の個体のindexを取得する。世代が変わらなければ、そこから順次増やしていく.
+    private int currentGeneration = 1;// ファイルを読み込んだとき、末尾の個体のgenerationを取得する
+    private int lastIndex;// ファイルを読み込んだとき、末尾の個体のindexを取得する。世代が変わらなければ、書き込むときそこから順次増やしていく.
     private int nextIndex = 1;// 1~
     private int nextGeneration = 1;// curretnGenerationの個体数が一定数溜まっていたら+1する。ファイルを書き込むときに使う
     private int numbersPerGen = 40;
-    private boolean needNextGen = false;
+    private boolean needNextGen = false;// 現在の世代が一定数を超えていたら、trueになる
     private int[][] retrievedData;
 
     private TAIGeneExtractor() {
@@ -75,11 +76,12 @@ public class TAIGeneExtractor {
         // MergeOperatorにその情報を送りinvoke
         // trueの場合、データも一緒に送ってしまう？
         if (this.retrievedData == null || this.retrievedData.length == 0) {
-            TAIMergeOperator.getInstance().invoke(false, Collections.emptyMap());
+            return;
+            // TAIMergeOperator.getInstance().invoke(false, Collections.emptyMap());
         } else {
             // データを一部抽出して保持。ゲーム終了後、データを書きだすのに使う
-            this.currentGeneration = retrievedData[retrievedData.length - 1][0];
-            this.lastIndex = retrievedData[retrievedData.length - 1][1];
+            this.currentGeneration = this.retrievedData[this.retrievedData.length - 1][0];
+            this.lastIndex = this.retrievedData[this.retrievedData.length - 1][1];
             this.needNextGen = this.lastIndex >= this.numbersPerGen;
             this.nextIndex = this.needNextGen ? 1 : this.lastIndex + 1;
             this.nextGeneration = this.needNextGen ? this.currentGeneration + 1 : this.currentGeneration;
@@ -87,21 +89,26 @@ public class TAIGeneExtractor {
             if (this.needNextGen) {
                 // 世代交代が必要
                 // データを送信用に加工したい
-                // List<Set<Integer, List<Integer>>> processedData = new ArrayList<>();
                 Map<Map<CardCategory, Integer>, Integer> processedData = new LinkedHashMap<>();
+                // TODO processedDataをmapにすると、keyになるmapが同一でなくとも同値である限り同じ個体とみなされてしまう
+                // 結果として重複とみなされ排除されてしまう
                 // [[[CONSTRUCTION,100],[MARKET,80],[FACILITY,90]],fitness]
                 // [[[CONSTRUCTION,80],[MARKET,120],[FACILITY,90]],fitness]
 
-                // 20人分のデータをとりたい
-                for (int i = retrievedData.length - 1; processedData.size() < this.numbersPerGen; i--) {
+                // numbersPerGen人分のデータをとりたい
+                for (int i = this.retrievedData.length - 1; processedData.size() < this.numbersPerGen && i >= 0; i--) {
+                    System.out.println(i);
+                    System.out.println(processedData.size());//
 
                     int[] singleData = new int[6];
                     for (int j = 0; j < singleData.length; j++) {
                         int offset = 5;
-                        singleData[j] = retrievedData[i][j + offset];
+                        singleData[j] = this.retrievedData[i][j + offset];// TODO ArrayIndexOutOfBoundsException Index
+                                                                          // -1 out
+                        // of bounds for length 42
                     }
 
-                    int fitness = retrievedData[i][4];
+                    int fitness = this.retrievedData[i][4];
                     // #region このやり方でもできるが、引数で与えられた6つのマップがlinkedHashMapにならない
                     // AGRICULTURE, CONSTRUCTION, INDUSTRY, MARKET, EDUCATION, FACILITY, COMMODITY,
                     // processedData.put(Map.ofEntries(
@@ -133,7 +140,8 @@ public class TAIGeneExtractor {
 
                 TAIMergeOperator.getInstance().invoke(true, processedData);
             } else {
-                TAIMergeOperator.getInstance().invoke(false, Collections.emptyMap());
+                return;
+                // TAIMergeOperator.getInstance().invoke(false, Collections.emptyMap());
             }
         }
 
@@ -144,8 +152,15 @@ public class TAIGeneExtractor {
         // もともとあるデータに新しいデータを足していく
         List<int[]> updatedData = new ArrayList<>(Arrays.asList(this.retrievedData));
 
-        for (int i = 0; i < rankingData.size(); i++) {
-            AIPlayer player = (AIPlayer) rankingData.get(i);
+        // TAIのみ抽出
+        List<AIPlayer> filteredRanking = rankingData.stream().filter(p -> p instanceof AIPlayer).map(p -> (AIPlayer) p)
+                .filter(p -> p.getBrain() instanceof TAI).collect(Collectors.toList());
+
+        if (filteredRanking.isEmpty())
+            return;
+
+        for (int i = 0; i < filteredRanking.size(); i++) {
+            AIPlayer player = filteredRanking.get(i);
             int rank = i + 1;
             int fitness = calcFitness(rank, player.getScore());
             List<Integer> firstPart = new ArrayList<>(

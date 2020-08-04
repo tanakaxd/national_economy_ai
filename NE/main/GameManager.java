@@ -22,6 +22,8 @@ import NE.player.AIPlayer;
 import NE.player.HumanPlayer;
 import NE.player.Player;
 import NE.player.Worker;
+import NE.player.ai.RandomAI;
+import NE.player.ai.SimpleTAI;
 import NE.player.ai.tai.TAI;
 import NE.player.ai.tai.TAIGeneExtractor;
 
@@ -166,7 +168,9 @@ public class GameManager {
                 "VictoryPoints: " + currentPlayer.getVictoryPoint() + " => " + currentPlayer.calcVictoryPointsScore());
         System.out.println("HandsCounter: " + currentPlayer.getHands().size());
         System.out.println("Hands: " + currentPlayer.getHands());
+        System.out.println("public Buildings: " + this.board.getBuildings());
         System.out.println("Owned Buildings: " + currentPlayer.getBuildings());
+        System.out.println("History: " + currentPlayer.getHistory());
         System.out.println("-------------------------");
 
     }
@@ -318,6 +322,7 @@ public class GameManager {
     }
 
     private void humanPlayerTurn(Player currentPlayer) {
+        Card cardToWork = null;
         boolean done = false;
         do {
             // 選択肢を表示
@@ -351,19 +356,21 @@ public class GameManager {
             int optionB = Display.scanNextInt(area.size());
 
             // 選択されたカードを取得
-            Card card = area.get(optionB);
+            cardToWork = area.get(optionB);
 
             // カードを使用する
-            done = card.apply(currentPlayer, this.board);
+            done = cardToWork.apply(currentPlayer, this.board);
             if (!done) {
                 System.out.println("丸投げだけど、何らかの理由で使用できません。もう一度最初から");
             }
         } while (!done);
+        currentPlayer.addHistory(cardToWork);
     }
 
     private void AIPlayerTurn(Player currentPlayer) {
 
         AIPlayer ai = (AIPlayer) currentPlayer;
+        Card cardToWork = null;
         boolean done = false;
         int stuck = -1;
         do {
@@ -404,12 +411,12 @@ public class GameManager {
             }
 
             // 選択されたエリアからカードを取得
-            Card card = area.get(options.get(1));
-            System.out.println(card);
+            cardToWork = area.get(options.get(1));
+            System.out.println(cardToWork);
 
             // カードを使用する
             try {
-                done = card.apply(ai, this.board);
+                done = cardToWork.apply(ai, this.board);
             } catch (IndexOutOfBoundsException e) {
                 e.printStackTrace();
             }
@@ -423,6 +430,7 @@ public class GameManager {
 
         } while (!done);
         // TODO このターン労働したカードを取得しておく
+        currentPlayer.addHistory(cardToWork);
     }
 
     // TODO

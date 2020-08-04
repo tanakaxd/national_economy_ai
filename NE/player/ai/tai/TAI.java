@@ -23,6 +23,7 @@ import NE.data.CsvImporter;
 import NE.main.GameManager;
 import NE.player.Player;
 import NE.player.ai.IAI;
+import NE.player.ai.tai.TAIGeneLoader.GeneMode;
 
 public class TAI implements IAI {
 
@@ -66,21 +67,8 @@ public class TAI implements IAI {
 
     private final Map<Integer, Integer> CARDS_BASE_EVALUATION = CsvImporter.getInstance().getCardData();// idと基礎評価
     private Map<CardCategory, Integer> categoryValue = new HashMap<>();
-    // private Set<CategoryValue> categoryValues = new HashSet<>();
-    // private final Map<CardCategory, Double> PERSONALITY_FAVOR = new
-    // HashMap<CardCategory, Double>() {
-    // private static final long serialVersionUID = -8080332401300985295L;
-    // {
-    // put(AGRICULTURE, Display.RandomGaussian(1, 0.2));
-    // put(CONSTRUCTION, Display.RandomGaussian(1, 0.2));
-    // put(INDUSTRY, Display.RandomGaussian(1, 0.2));
-    // put(MARKET, Display.RandomGaussian(1, 0.2));
-    // put(EDUCATION, Display.RandomGaussian(1, 0.2));
-    // put(FACILITY, Display.RandomGaussian(1, 0.2));
-    // }
-    // };
     private final LinkedHashMap<CardCategory, Integer> PERSONALITY_FAVOR = new LinkedHashMap<CardCategory, Integer>(
-            TAIGeneLoader.getInstance().getPersonalityData());
+            TAIGeneLoader.getInstance().getPersonalityData(GeneMode.RANDOM));
     private List<Card> orderedCards = new ArrayList<>();// thinkの結果をそのターン終了まで格納しておくリスト。思考ロックを避けるため
     private double huristicRate = 0.1;// ロジックを無視し思考ロックを打開する確率
     private int categoryValueCap = 50;
@@ -186,12 +174,16 @@ public class TAI implements IAI {
         // 所有物件/資金
         // 多い MARKETは後回し
         if (getAffordableProperty() >= 25) {
+            addCategoryValue(EDUCATION, 75);
+            addCategoryValue(MARKET, -25);
+        } else if (getAffordableProperty() >= 10) {
             addCategoryValue(EDUCATION, 50);
-            addCategoryValue(MARKET, -50);
         } else if (getAffordableProperty() >= 5) {
             addCategoryValue(EDUCATION, 25);
-            addCategoryValue(MARKET, -25);
-        } else if (getAffordableProperty() >= 0) {
+        } else if (getAffordableProperty() >= -5) {
+            addCategoryValue(CONSTRUCTION, 50);
+            addCategoryValue(MARKET, 25);
+            addCategoryValue(EDUCATION, -25);
         } else {
             addCategoryValue(CONSTRUCTION, 25);
             addCategoryValue(MARKET, 50);
@@ -421,13 +413,13 @@ public class TAI implements IAI {
 
         } else {
             // 地球建設以外の場合
-            // TODO コストが足りるものの中で、base valueが高い順に、ソート順評価に状況に応じた係数をかける
+            // TODO コストが足りるものの中で、costが高い順に、ソート順評価に状況に応じた係数をかける
             // 建てられるものをフィルターにかける→Cardと評価のMapにする→評価が一番高いCardを取得
             // ソートはいらない、O(n)のO(nlogn)差が出るはず
             List<Card> filtered = candidates.stream().filter(c -> c.getCost(self) <= self.getHands().size() - 1)
-                    .sorted((e1, e2) -> (int) (this.CARDS_BASE_EVALUATION.get(e1.getId())
-                            * calcSituationCoefficientToBuild(e1.getId())
-                            - this.CARDS_BASE_EVALUATION.get(e2.getId()) * calcSituationCoefficientToBuild(e2.getId())))
+                    .sorted((e1,
+                            e2) -> (int) (e2.getCost(self) * calcSituationCoefficientToBuild(e2.getId())
+                                    - e1.getCost(self) * calcSituationCoefficientToBuild(e1.getId())))
                     .collect(Collectors.toList());
 
             if (filtered.isEmpty())
@@ -537,22 +529,4 @@ public class TAI implements IAI {
         return PERSONALITY_FAVOR;
     }
 
-    // private class CategoryValueMap<CardCategory, Integer> extends
-    // HashMap<CardCategory, Integer> {
-    // /**
-    // *
-    // */
-    // private static final long serialVersionUID = 1L;
-
-    // public void addValue(int amount) {
-    // this.score += amount;
-    // }
-
-    // public void reset() {
-    // for (Map.Entry<CardCategory, Integer> ele : entrySet()) {
-    // ele.setValue(0);
-    // }
-
-    // }
-    // }
 }

@@ -14,10 +14,9 @@ import NE.card.Card.CardCategory;
 import NE.display.Display;
 
 public class TAIMergeOperator {
-    // GeneExtractorからinvokeされる
     public final String PATH = "NE/player/ai/tai/TAINewGenerationPool.csv";
     private double mutationRate = 0.05;
-    private int generationSize = 40;
+    private int nextGenerationSize = 40;
 
     private static TAIMergeOperator theInstance;
 
@@ -32,6 +31,7 @@ public class TAIMergeOperator {
         return theInstance;
     }
 
+    // GeneExtractorからinvokeされる
     public void invoke(Boolean needNewPool, Map<Map<CardCategory, Integer>, Integer> data) {
         // [[[CONSTRUCTION,100],[MARKET,80],[FACILITY,90]],fitness]
         // [[[CONSTRUCTION,80],[MARKET,120],[FACILITY,90]],fitness]
@@ -44,16 +44,16 @@ public class TAIMergeOperator {
                 }
             });
 
-            System.out.println(parentPool.size());
+            // System.out.println(parentPool.size());
 
             List<Map<CardCategory, Integer>> childPool = new ArrayList<>();
-            while (childPool.size() < this.generationSize) {
+            while (childPool.size() < this.nextGenerationSize) {
                 Map<CardCategory, Integer> parentA = parentPool.get(new Random().nextInt(parentPool.size()));
-                System.out.println("parentA: " + parentA);
+                // System.out.println("parentA: " + parentA);
                 Map<CardCategory, Integer> parentB = parentPool.get(new Random().nextInt(parentPool.size()));
-                System.out.println("parentB: " + parentB);
+                // System.out.println("parentB: " + parentB);
                 Map<CardCategory, Integer> child = merge(parentA, parentB);
-                System.out.println("child: " + child);
+                // System.out.println("child: " + child);
                 childPool.add(child);
             }
             // Display.scanNextInt(10);

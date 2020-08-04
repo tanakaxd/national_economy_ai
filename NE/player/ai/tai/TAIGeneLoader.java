@@ -28,14 +28,24 @@ import NE.display.Display;
 public class TAIGeneLoader {
 
     // private Map<CardCategory, Integer> personalityGene;
-    private List<Map<CardCategory, Integer>> personalityData = new ArrayList<>();
-    private boolean hasData;
+    private List<Map<CardCategory, Integer>> currentGenerationPool = new ArrayList<>();
+    private Map<CardCategory, Integer> specificGene = new LinkedHashMap<>();
+    private int[] specificData = new int[] { 136, 70, 90, 91, 167, 10 };
+    private boolean hasData = false;
 
     private static TAIGeneLoader theInstance;
 
     private TAIGeneLoader() {
 
         this.hasData = loadGenePool();
+        if (specificData.length == 6) {
+            specificGene.put(AGRICULTURE, specificData[0]);
+            specificGene.put(CONSTRUCTION, specificData[1]);
+            specificGene.put(INDUSTRY, specificData[2]);
+            specificGene.put(MARKET, specificData[3]);
+            specificGene.put(EDUCATION, specificData[4]);
+            specificGene.put(FACILITY, specificData[5]);
+        }
 
     }
 
@@ -83,35 +93,47 @@ public class TAIGeneLoader {
             indivisual.put(EDUCATION, indivisualData[4]);
             indivisual.put(FACILITY, indivisualData[5]);
 
-            this.personalityData.add(indivisual);
+            this.currentGenerationPool.add(indivisual);
         }
 
         return true;
     }
 
-    public Map<CardCategory, Integer> getPersonalityData() {
-        Map<CardCategory, Integer> participantData;
-        if (this.hasData) {
-            participantData = this.personalityData.get(new Random().nextInt(this.personalityData.size()));
-        } else {
-            // genePoolが手に入れられなかった場合、ランダムで生成
-            participantData = new LinkedHashMap<CardCategory, Integer>() {
-                /**
-                 *
-                 */
-                private static final long serialVersionUID = 1L;
-
-                {
-                    put(AGRICULTURE, (int) Display.RandomGaussian(100, 50));
-                    put(CONSTRUCTION, (int) Display.RandomGaussian(100, 50));
-                    put(INDUSTRY, (int) Display.RandomGaussian(100, 50));
-                    put(MARKET, (int) Display.RandomGaussian(100, 50));
-                    put(EDUCATION, (int) Display.RandomGaussian(100, 50));
-                    put(FACILITY, (int) Display.RandomGaussian(100, 50));
+    public Map<CardCategory, Integer> getPersonalityData(GeneMode geneMode) {
+        switch (geneMode) {
+            case SPECIFIC:
+                return this.specificGene;
+            case GENETIC_ALGORITHM:
+                if (this.hasData) {
+                    // TODO ランダムは均質的にならない場合がある。できたら、最初から一人ずつ取り出したい
+                    return this.currentGenerationPool.get(new Random().nextInt(this.currentGenerationPool.size()));
                 }
-            };
+                break;
+            case RANDOM:
+                return new LinkedHashMap<CardCategory, Integer>() {
+                    /**
+                     *
+                     */
+                    private static final long serialVersionUID = 1L;
+
+                    {
+                        put(AGRICULTURE, (int) Display.RandomGaussian(100, 50));
+                        put(CONSTRUCTION, (int) Display.RandomGaussian(100, 50));
+                        put(INDUSTRY, (int) Display.RandomGaussian(100, 50));
+                        put(MARKET, (int) Display.RandomGaussian(100, 50));
+                        put(EDUCATION, (int) Display.RandomGaussian(100, 50));
+                        put(FACILITY, (int) Display.RandomGaussian(100, 50));
+                    }
+                };
+            default:
+                System.out.println("invalid GeneMode");
+                break;
         }
-        return participantData;
+        return null;
+    }
+
+    public enum GeneMode {
+        RANDOM, GENETIC_ALGORITHM, SPECIFIC
     }
 
 }
