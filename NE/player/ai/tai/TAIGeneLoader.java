@@ -30,7 +30,9 @@ public class TAIGeneLoader {
     // private Map<CardCategory, Integer> personalityGene;
     private List<Map<CardCategory, Integer>> currentGenerationPool = new ArrayList<>();
     private Map<CardCategory, Integer> specificGene = new LinkedHashMap<>();
-    private int[] specificData = new int[] { 136, 70, 90, 91, 167, 10 };
+    private int[] specificData = new int[] { 150, 70, 90, 100, 160, 50 };
+    // private int[] specificData = new int[] { 136, 70, 90, 91, 167, 10 };
+    // private int[] specificData = new int[] { 67, 76, 99, 40, 85, 8 };
     private boolean hasData = false;
 
     private static TAIGeneLoader theInstance;
@@ -108,8 +110,25 @@ public class TAIGeneLoader {
                     // TODO ランダムは均質的にならない場合がある。できたら、最初から一人ずつ取り出したい
                     return this.currentGenerationPool.get(new Random().nextInt(this.currentGenerationPool.size()));
                 }
-                break;
+                System.out.println("GA data not found -> proceed RANDOM generation");
+                // データを持っていなければ、RANDOMになる。
             case RANDOM:
+                return new LinkedHashMap<CardCategory, Integer>() {
+                    /**
+                     *
+                     */
+                    private static final long serialVersionUID = 1L;
+
+                    {
+                        put(AGRICULTURE, (int) (Math.random() * 200));
+                        put(CONSTRUCTION, (int) (Math.random() * 200));
+                        put(INDUSTRY, (int) (Math.random() * 200));
+                        put(MARKET, (int) (Math.random() * 200));
+                        put(EDUCATION, (int) (Math.random() * 200));
+                        put(FACILITY, (int) (Math.random() * 200));
+                    }
+                };
+            case RANDOM_GAUSSIAN:
                 return new LinkedHashMap<CardCategory, Integer>() {
                     /**
                      *
@@ -132,8 +151,27 @@ public class TAIGeneLoader {
         return null;
     }
 
+    public Map<CardCategory, Integer> getPersonalityData(int[] nums) {
+
+        return new LinkedHashMap<CardCategory, Integer>() {
+            /**
+             *
+             */
+            private static final long serialVersionUID = 1L;
+
+            {
+                put(AGRICULTURE, nums[0]);
+                put(CONSTRUCTION, nums[1]);
+                put(INDUSTRY, nums[2]);
+                put(MARKET, nums[3]);
+                put(EDUCATION, nums[4]);
+                put(FACILITY, nums[5]);
+            }
+        };
+    }
+
     public enum GeneMode {
-        RANDOM, GENETIC_ALGORITHM, SPECIFIC
+        RANDOM, GENETIC_ALGORITHM, SPECIFIC, RANDOM_GAUSSIAN
     }
 
 }

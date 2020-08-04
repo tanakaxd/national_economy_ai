@@ -21,6 +21,7 @@ import NE.card.Card;
 import NE.card.Card.CardCategory;
 import NE.data.CsvImporter;
 import NE.main.GameManager;
+import NE.main.Main;
 import NE.player.Player;
 import NE.player.ai.IAI;
 import NE.player.ai.tai.TAIGeneLoader.GeneMode;
@@ -67,8 +68,7 @@ public class TAI implements IAI {
 
     private final Map<Integer, Integer> CARDS_BASE_EVALUATION = CsvImporter.getInstance().getCardData();// idと基礎評価
     private Map<CardCategory, Integer> categoryValue = new HashMap<>();
-    private final LinkedHashMap<CardCategory, Integer> PERSONALITY_FAVOR = new LinkedHashMap<CardCategory, Integer>(
-            TAIGeneLoader.getInstance().getPersonalityData(GeneMode.RANDOM));
+    private LinkedHashMap<CardCategory, Integer> PERSONALITY_FAVOR;
     private List<Card> orderedCards = new ArrayList<>();// thinkの結果をそのターン終了まで格納しておくリスト。思考ロックを避けるため
     private double huristicRate = 0.1;// ロジックを無視し思考ロックを打開する確率
     private int categoryValueCap = 50;
@@ -77,13 +77,35 @@ public class TAI implements IAI {
     private Card buildingToWork;
     private Card secondCardToBuild;// for地球建設
 
+    public TAI(GeneMode geneMode) {
+
+        for (CardCategory category : CardCategory.values()) {
+            categoryValue.put(category, 0);
+        }
+
+        PERSONALITY_FAVOR = new LinkedHashMap<CardCategory, Integer>(
+                TAIGeneLoader.getInstance().getPersonalityData(geneMode));
+
+    }
+
+    public TAI(int... nums) {
+
+        for (CardCategory category : CardCategory.values()) {
+            categoryValue.put(category, 0);
+        }
+
+        PERSONALITY_FAVOR = new LinkedHashMap<CardCategory, Integer>(
+                TAIGeneLoader.getInstance().getPersonalityData(nums));
+
+    }
+
     public TAI() {
         for (CardCategory category : CardCategory.values()) {
             categoryValue.put(category, 0);
         }
 
-        // System.out.println(this.CARDS_BASE_EVALUATION);
-        // System.out.println(this.personalityFavor);
+        PERSONALITY_FAVOR = new LinkedHashMap<CardCategory, Integer>(
+                TAIGeneLoader.getInstance().getPersonalityData(GeneMode.GENETIC_ALGORITHM));
     }
 
     private int calcCardValueToUse(Card card) {
@@ -160,9 +182,10 @@ public class TAI implements IAI {
         // 手札枚数
         // 多い CONSTRUCTION/MARKET
         // 少ない AGRICULTURE/INDUSTRY
-        if (getHandSize() >= 7) {
+        if (getHandSize() >= 8) {
+            addCategoryValue(CONSTRUCTION, 75);
+        } else if (getHandSize() >= 6) {
             addCategoryValue(CONSTRUCTION, 50);
-            addCategoryValue(INDUSTRY, -25);
         } else if (getHandSize() >= 4) {
             addCategoryValue(CONSTRUCTION, 25);
             addCategoryValue(INDUSTRY, 25);
@@ -170,6 +193,8 @@ public class TAI implements IAI {
             addCategoryValue(AGRICULTURE, 50);
             addCategoryValue(INDUSTRY, 50);
         }
+
+        // 消費財が多く、アクション数が残っている→industry
 
         // 所有物件/資金
         // 多い MARKETは後回し
@@ -214,7 +239,7 @@ public class TAI implements IAI {
         System.out.println("before cap: " + this.categoryValue);
 
         // cap
-        capCategoryValue();
+        // capCategoryValue();
 
         System.out.println("after cap:" + this.categoryValue);
 
@@ -228,6 +253,13 @@ public class TAI implements IAI {
             case 0:// 芋畑
                 result = getHandSize() >= 3 ? 0 : getHandSize() == 2 ? 0.5 : 1.5;
                 return result;
+            case 2:// 養殖場
+                result = this.self.getHands().stream().anyMatch(c -> c.getCategory() == CardCategory.COMMODITY) ? 1.5
+                        : 1;
+                return result;
+            case 3:// 醸造所
+                result = getCurrentTurn() == 9 ? 0 : 1;
+                return result;
             case 22:// 製鉄所
                 result = this.self.getUseMine() ? 2 : 0;
                 return result;
@@ -236,7 +268,7 @@ public class TAI implements IAI {
                         .count() * 0.5;
                 return result;
             case 43:// 専門学校
-                result = getCurrentTurn() == 8 ? 2 : 0.5;
+                result = getCurrentTurn() == 8 ? 2 : 0;
                 return result;
             default:
                 return 1;

@@ -97,19 +97,15 @@ public class TAIGeneExtractor {
 
                 // numbersPerGen人分のデータをとりたい
                 for (int i = this.retrievedData.length - 1; processedData.size() < this.numbersPerGen && i >= 0; i--) {
-                    System.out.println(i);
-                    System.out.println(processedData.size());//
 
                     int[] singleData = new int[6];
                     for (int j = 0; j < singleData.length; j++) {
                         int offset = 5;
-                        singleData[j] = this.retrievedData[i][j + offset];// TODO ArrayIndexOutOfBoundsException Index
-                                                                          // -1 out
-                        // of bounds for length 42
+                        singleData[j] = this.retrievedData[i][j + offset];
                     }
 
                     int fitness = this.retrievedData[i][4];
-                    // #region このやり方でもできるが、引数で与えられた6つのマップがlinkedHashMapにならない
+                    // #region このやり方でもできるが、引数で与えられた6つのマップがlinkedHashMapにならない。順序付けができなくなる
                     // AGRICULTURE, CONSTRUCTION, INDUSTRY, MARKET, EDUCATION, FACILITY, COMMODITY,
                     // processedData.put(Map.ofEntries(
                     // new AbstractMap.SimpleEntry<CardCategory, Integer>(CardCategory.AGRICULTURE,
@@ -138,7 +134,7 @@ public class TAIGeneExtractor {
 
                 }
 
-                TAIMergeOperator.getInstance().invoke(true, processedData);
+                TAIMergeOperator.getInstance().invoke(processedData);
             } else {
                 return;
                 // TAIMergeOperator.getInstance().invoke(false, Collections.emptyMap());

@@ -30,7 +30,6 @@ public class IndustryCardD extends IndustryCard {
 
     @Override
     public int getCost(Player player) {
-        return player.getBuildings().stream().anyMatch(c -> c.getCategory() == CardCategory.AGRICULTURE) ? this.cost - 1
-                : this.cost;
+        return player.getBuildings().stream().anyMatch(c -> c.isAgriculture()) ? this.cost - 1 : this.cost;
     }
 }

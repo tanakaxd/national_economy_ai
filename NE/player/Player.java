@@ -73,6 +73,7 @@ public abstract class Player {
             board.getTrash().add(this.hands.remove(index));
         } catch (IndexOutOfBoundsException e) {
             e.printStackTrace();
+            System.out.println("Bad AI! auto-piloting initiated");
             board.getTrash().add(this.hands.remove(0));
         }
     }
@@ -162,19 +163,23 @@ public abstract class Player {
         for (Card card : buildings) {
             totalRealEstateValue += card.getValue();
         }
+        // System.out.println("totalRealEstateValue " + totalRealEstateValue);
         this.score = totalRealEstateValue + this.money + (this.debt * 3) + calcVictoryPointsScore()
                 + calcFacilityBonus();
+        // System.out.println("score " + this.score);
     }
 
     public int calcVictoryPointsScore() {
         int ex = this.victoryPoint % 3;
         int score = this.victoryPoint / 3 * 10 + ex;
+        // System.out.println("vp " + score);
         return score;
     }
 
     private int calcFacilityBonus() {
         int bonus = this.buildings.stream().filter(c -> c.getCategory() == CardCategory.FACILITY)
                 .mapToInt(c -> ((FacilityCard) c).calcBonus(this)).sum();
+        // System.out.println("bonus " + bonus);
         return bonus;
     }
 
@@ -233,7 +238,7 @@ public abstract class Player {
 
     public int getScore() {
         calcScore();
-        return score;
+        return this.score;
     }
 
     public void setScore(int score) {

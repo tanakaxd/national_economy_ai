@@ -22,10 +22,12 @@ import NE.player.AIPlayer;
 import NE.player.HumanPlayer;
 import NE.player.Player;
 import NE.player.Worker;
+import NE.player.ai.AhoAI;
 import NE.player.ai.RandomAI;
 import NE.player.ai.SimpleTAI;
 import NE.player.ai.tai.TAI;
 import NE.player.ai.tai.TAIGeneExtractor;
+import NE.player.ai.tai.TAIGeneLoader.GeneMode;
 
 public class GameManager {
 
@@ -47,6 +49,7 @@ public class GameManager {
 
     // AI settings
     private boolean isAITransparent = false;
+    private boolean pauseOnAITurn = false;
     private int waitTime = 0;
     private int maxStucks = 10;
 
@@ -57,14 +60,20 @@ public class GameManager {
     public void init() {
         this.board = new Board(this.cardsInDeck);
 
-        // this.players.add(new HumanPlayer(this.board));
+        this.players.add(new HumanPlayer(this.board));
+        // this.players.add(new AIPlayer(this.board, new AhoAI()));
+        this.players.add(new AIPlayer(this.board, new TAI(GeneMode.GENETIC_ALGORITHM)));
         this.players.add(new AIPlayer(this.board, new TAI()));
-        this.players.add(new AIPlayer(this.board, new TAI()));
-        this.players.add(new AIPlayer(this.board, new TAI()));
+        // this.players.add(new AIPlayer(this.board, new TAI(84, 48, 74, 53, 107,
+        // 179)));
+        this.players.add(new AIPlayer(this.board, new TAI(132, 40, 99, 125, 29, 73)));
+        // this.players.add(new AIPlayer(this.board, new
+        // TAI(GeneMode.GENETIC_ALGORITHM)));
+        // this.players.add(new AIPlayer(this.board, new TAI(GeneMode.SPECIFIC)));
+        // this.players.add(new AIPlayer(this.board, new TAI()));
         // this.players.add(new AIPlayer(this.board, new RandomAI()));
         // this.players.add(new AIPlayer(this.board, new SimpleTAI()));
         // this.players.add(new AIPlayer(this.board, new SimpleTAI()));
-        this.players.add(new AIPlayer(this.board, new TAI()));
         // this.players.add(new AIPlayer(this.board, new RandomAI()));
         // this.players.add(new AIPlayer(this.board, new RandomAI()));
         // this.players.add(new AIPlayer(this.board, new RandomAI()));
@@ -266,7 +275,8 @@ public class GameManager {
         }
 
         // TODO TAI用 データを送る
-        TAIGeneExtractor.getInstance().terminate(rankings);
+        if (Main.IS_TAI_RECORDING)
+            TAIGeneExtractor.getInstance().terminate(rankings);
     }
 
     private boolean isAllPlayersDone() {
@@ -409,13 +419,17 @@ public class GameManager {
             if (area.isEmpty()) {
                 continue;
             }
-
             // 選択されたエリアからカードを取得
-            cardToWork = area.get(options.get(1));
-            System.out.println(cardToWork);
-
-            // カードを使用する
             try {
+                cardToWork = area.get(options.get(1));
+                System.out.println(cardToWork);
+            } catch (IndexOutOfBoundsException e) {
+                System.out.println("Bad AI! auto-piloting initiated");
+                cardToWork = this.board.getBuildings().get(0);
+            }
+
+            try {
+                // カードを使用する
                 done = cardToWork.apply(ai, this.board);
             } catch (IndexOutOfBoundsException e) {
                 e.printStackTrace();
@@ -429,8 +443,13 @@ public class GameManager {
             }
 
         } while (!done);
-        // TODO このターン労働したカードを取得しておく
         currentPlayer.addHistory(cardToWork);
+        if (this.pauseOnAITurn) {
+            System.out.println();
+            System.out.println("AIの行動を確認できるよう一時停止しています");
+            System.out.println("解除するには 1 を入力してください");
+            Display.scanNextInt(1);
+        }
     }
 
     // TODO

@@ -257,11 +257,11 @@ public class SimpleTAI implements IAI {
 
     @Override
     public int thinkDiscard(Player self, Board board, Set<Integer> indexesNotAllowed) {
-        // TODO 要確認
         // candidates がゼロ個になることはないと想定している。外部のメソッド次第
         // 何らかの理由でゼロ個になった。発生頻度は低い。
         // 状態：その前のターンに研究所ドローでデッキを更新している。大聖堂を二枚ドロー？ 同じアドレス？
         // ループが一回のみで候補が二枚消えている。その時点では、indexesNotAllowedには構造上一つしか値は入っていないはず。アドレスが重複していたとしか考えられない？
+        // 確証はないが、おそらくデッキを更新するときに捨て札を消していなかったのが原因
         List<Card> candidates = self.getHands().stream()
                 .filter(card -> indexesNotAllowed.stream().noneMatch(index -> index == self.getHands().indexOf(card)))
                 .collect(Collectors.toList());

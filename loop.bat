@@ -7,7 +7,7 @@ echo compiling...
 javac -d .\bin -encoding utf-8 .\NE\main\Main.java
 echo compile finished
 
-for /l %%n in (1,1,300) do (
+for /l %%n in (1,1,600) do (
     echo %%n
     java -classpath .\bin NE.main.Main
 )

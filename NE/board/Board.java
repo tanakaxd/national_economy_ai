@@ -26,8 +26,6 @@ public class Board {
         this.buildings.add(new ConstructionCardA());
         this.buildings.add(new SchoolCardA());
         this.buildings.add(new IndustryCardB());
-        // this.buildings.add(new IndustryCardH());
-        // this.buildings.add(new ConstructionCardE());
     }
 
     public void refreshDeck() {

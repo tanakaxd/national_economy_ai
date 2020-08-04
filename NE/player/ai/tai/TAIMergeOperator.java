@@ -15,7 +15,7 @@ import NE.display.Display;
 
 public class TAIMergeOperator {
     public final String PATH = "NE/player/ai/tai/TAINewGenerationPool.csv";
-    private double mutationRate = 0.05;
+    private double mutationRate = 0.08;
     private int nextGenerationSize = 40;
 
     private static TAIMergeOperator theInstance;
@@ -32,38 +32,35 @@ public class TAIMergeOperator {
     }
 
     // GeneExtractorからinvokeされる
-    public void invoke(Boolean needNewPool, Map<Map<CardCategory, Integer>, Integer> data) {
+    public void invoke(Map<Map<CardCategory, Integer>, Integer> data) {
         // [[[CONSTRUCTION,100],[MARKET,80],[FACILITY,90]],fitness]
         // [[[CONSTRUCTION,80],[MARKET,120],[FACILITY,90]],fitness]
-        if (needNewPool) {
-            // 20人分のpersonalityデータをfitnessで加重して親プールを作り、子供個体を20人生み出す
-            List<Map<CardCategory, Integer>> parentPool = new ArrayList<>();
-            data.forEach((k, v) -> {
-                for (int i = 0; i < v; i++) {
-                    parentPool.add(k);
-                }
-            });
 
-            // System.out.println(parentPool.size());
-
-            List<Map<CardCategory, Integer>> childPool = new ArrayList<>();
-            while (childPool.size() < this.nextGenerationSize) {
-                Map<CardCategory, Integer> parentA = parentPool.get(new Random().nextInt(parentPool.size()));
-                // System.out.println("parentA: " + parentA);
-                Map<CardCategory, Integer> parentB = parentPool.get(new Random().nextInt(parentPool.size()));
-                // System.out.println("parentB: " + parentB);
-                Map<CardCategory, Integer> child = merge(parentA, parentB);
-                // System.out.println("child: " + child);
-                childPool.add(child);
+        // 20人分のpersonalityデータをfitnessで加重して親プールを作り、子供個体を20人生み出す
+        List<Map<CardCategory, Integer>> parentPool = new ArrayList<>();
+        data.forEach((k, v) -> {
+            for (int i = 0; i < v; i++) {
+                parentPool.add(k);
             }
-            // Display.scanNextInt(10);
+        });
 
-            // プールファイルを更新
-            update(childPool);
-            // Display.scanNextInt(10);
-        } else {
-            // プールは更新せず、
+        // System.out.println(parentPool.size());
+
+        List<Map<CardCategory, Integer>> childPool = new ArrayList<>();
+        while (childPool.size() < this.nextGenerationSize) {
+            Map<CardCategory, Integer> parentA = parentPool.get(new Random().nextInt(parentPool.size()));
+            // System.out.println("parentA: " + parentA);
+            Map<CardCategory, Integer> parentB = parentPool.get(new Random().nextInt(parentPool.size()));
+            // System.out.println("parentB: " + parentB);
+            Map<CardCategory, Integer> child = merge(parentA, parentB);
+            // System.out.println("child: " + child);
+            childPool.add(child);
         }
+        // Display.scanNextInt(10);
+
+        // プールファイルを更新
+        update(childPool);
+        // Display.scanNextInt(10);
 
         // GeneLoaderに報せる。mainが順次処理してくれるので今のところいらない処理 TODO
     }
