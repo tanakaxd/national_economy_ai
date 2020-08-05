@@ -3,12 +3,10 @@ package NE.main;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 import NE.board.Board;
 import NE.card.Card;
-import NE.card.Card.CardCategory;
 import NE.card.market.MarketCardA;
 import NE.card.market.MarketCardB;
 import NE.card.market.MarketCardC;
@@ -22,7 +20,6 @@ import NE.player.AIPlayer;
 import NE.player.HumanPlayer;
 import NE.player.Player;
 import NE.player.Worker;
-import NE.player.ai.AhoAI;
 import NE.player.ai.tai.TAI;
 import NE.player.ai.tai.TAIGeneExtractor;
 import NE.player.ai.tai.TAIGeneLoader.GeneMode;
@@ -58,7 +55,7 @@ public class GameManager {
     public void init() {
         this.board = new Board(this.cardsInDeck);
 
-        // this.players.add(new HumanPlayer(this.board));
+        this.players.add(new HumanPlayer(this.board));
 
         // Player player = this.players.get(0);
         // player.build(new AgricultureCardA());
@@ -71,9 +68,10 @@ public class GameManager {
         // player.addWorker(false);
         // player.addWorker(false);
 
-        this.players.add(new AIPlayer(this.board, new AhoAI()));
+        // this.players.add(new AIPlayer(this.board, new AhoAI()));
+        // this.players.add(new AIPlayer(this.board, new SimpleTAI()));
         this.players.add(new AIPlayer(this.board, new TAI(GeneMode.GENETIC_ALGORITHM)));
-        this.players.add(new AIPlayer(this.board, new TAI(200, 200, 74, 0, 200, 0)));
+        this.players.add(new AIPlayer(this.board, new TAI()));
         this.players.add(new AIPlayer(this.board, new TAI(84, 48, 74, 53, 107, 179)));
         // this.players.add(new AIPlayer(this.board, new TAI(132, 40, 99, 125, 29,
         // 73)));
@@ -82,7 +80,6 @@ public class GameManager {
         // this.players.add(new AIPlayer(this.board, new TAI(GeneMode.SPECIFIC)));
         // this.players.add(new AIPlayer(this.board, new TAI()));
         // this.players.add(new AIPlayer(this.board, new RandomAI()));
-        // this.players.add(new AIPlayer(this.board, new SimpleTAI()));
         // this.players.add(new AIPlayer(this.board, new SimpleTAI()));
         // this.players.add(new AIPlayer(this.board, new RandomAI()));
         // this.players.add(new AIPlayer(this.board, new RandomAI()));
@@ -135,12 +132,8 @@ public class GameManager {
                 // ターンが回ってきたプレイヤーの情報を表示
                 displayPlayerInfo(currentPlayer);
 
-                // TODO
-                if (currentPlayer instanceof HumanPlayer) {
-                    humanPlayerTurn(currentPlayer);
-                } else {
-                    AIPlayerTurn(currentPlayer);
-                }
+                // カード使用のメインループ
+                currentPlayer.processTurn(board);
 
                 // 働き済みにする
                 worker.setWorkable(false);
@@ -215,7 +208,7 @@ public class GameManager {
 
     private void inflateWage() {
         if (this.currentTurn <= 2) {
-            this.currentWage = 3;// TODO modified
+            this.currentWage = 2;
         } else if (this.currentTurn <= 5) {
             this.currentWage = 3;
         } else if (this.currentTurn <= 7) {
@@ -233,7 +226,7 @@ public class GameManager {
         int count = 0;
         while (count < this.players.size()) {
             // 賃金支払処理
-            payWages(currentPlayer);
+            currentPlayer.payWages(board);
             // 手札調整処理
             capHands(currentPlayer);
             currentPlayer = getNextPlayer(currentPlayer);
@@ -268,10 +261,6 @@ public class GameManager {
     }
 
     private void finishGame() {
-        // 所持物件の価値を計算する
-        for (Player player : this.players) {
-            player.calcScore();
-        }
 
         List<Player> rankings = this.players.stream().sorted(Comparator.comparing(Player::getScore).reversed())
                 .collect(Collectors.toList());
@@ -301,104 +290,6 @@ public class GameManager {
         return isAllPlayersDone;
     }
 
-    private void payWages(Player player) {
-
-        // トータル賃金
-        int totalWages = player.getWorkers().size() * this.currentWage;
-
-        // 不足金額
-        int deficit = totalWages - player.getMoney();
-        System.out.println("deficit: " + deficit);
-
-        List<Card> buildingsSold = new ArrayList<>();
-
-        // Beforeを保存
-        List<Card> buildingsBefore = new ArrayList<>(player.getBuildings());// 丸ごとクローンして保存
-        int moneyBefore = player.getMoney();
-
-        int outerCount = 0;
-        while (true) {
-            int innerCount = 0;
-            // 賃金を所持金でまかなえなければ所持物件を売る
-            while (player.getMoney() < totalWages && player.getBuildings().stream()
-                    .filter(c -> c.getCategory() != CardCategory.FACILITY).count() > 0) {
-
-                Card buildingToSell = null;
-                int option;
-
-                // TODO option をリターンするメソッドをプレイヤーに作って多態性
-                if (player instanceof HumanPlayer) {
-                    System.out.println("売却するカードを選択してください");
-                    Display.printChoices(player.getBuildings());
-                    option = Display.scanNextInt(player.getBuildings().size());
-                } else {
-                    // todo stuckの可能性あり。とりあえずランダムで抜けられる
-                    AIPlayer ai = (AIPlayer) player;
-                    if (innerCount > 10 || outerCount >= 1) {// 恣意的な基準
-                        option = new Random().nextInt(ai.getBuildings().size());
-                        System.out.println("infinite loop detected... Auto-piloting initiated");
-                    } else {
-                        option = ai.getBrain().thinkSell(ai, this.board);
-                    }
-                }
-                buildingToSell = player.getBuildings().get(option);
-
-                if (buildingToSell.getCategory() == CardCategory.FACILITY)
-                    continue;
-
-                buildingsSold.add(buildingToSell);
-                player.sellBuildings(this.board, buildingToSell);
-                innerCount++;
-            }
-
-            System.out.println("buildingsSold " + buildingsSold);
-
-            // 売ったカードをチェックする
-            // まず売った建物を価値で昇順にソート
-            List<Card> cardsToSellOrdered = buildingsSold.stream()
-                    .sorted(Comparator.comparing(Card::getValue, Comparator.naturalOrder()))
-                    .collect(Collectors.toList());
-
-            System.out.println("cardsToSellOrdered " + cardsToSellOrdered);
-
-            boolean isOK = true;
-            int totalValue = 0;
-            // 売ったカードの価格を一つ一つ足していき、リストがすべて終わる前に不足金額に達したら不正
-            for (int i = cardsToSellOrdered.size() - 1; i >= 0; i--) {
-                totalValue += GameManager.getInstance().isSinglePlay ? cardsToSellOrdered.get(i).getValue() / 2
-                        : cardsToSellOrdered.get(i).getValue();
-                if (totalValue >= deficit && i > 0) {
-                    isOK = false;
-                    break;
-                }
-                System.out.println("in loop");
-            }
-
-            if (isOK) {
-                break;
-            }
-            System.out.println("売却物件が不正です。もう一度やり直してください");
-            // 巻き戻し処理
-            // 公共エリアから消す
-            this.board.getBuildings().removeAll(cardsToSellOrdered);
-            // 持ち物件に加える
-            // player.getBuildings().addAll(cardsToSell);
-            // 持ち物件を戻す。ただし、参照が変わる。もしほかの場所で参照を保持しているならバグが出る
-            player.setBuildings(buildingsBefore);
-            // 所持金を戻す
-            player.setMoney(moneyBefore);
-
-            buildingsSold.clear();
-
-            outerCount++;
-
-            Display.scanNextInt(1);
-        }
-
-        // 賃金を支払う
-        player.payMoney(this.board, totalWages);
-    }
-
     private Player getNextPlayer(Player currentPlayer) {
         int index = this.players.indexOf(currentPlayer);
         index++;
@@ -407,131 +298,6 @@ public class GameManager {
         }
         return this.players.get(index);
     }
-
-    private void humanPlayerTurn(Player currentPlayer) {
-        Card cardToWork = null;
-        boolean done = false;
-        do {
-            // 選択肢を表示
-            System.out.println();
-            System.out.println("1 => 公共フィールド");
-            System.out.println(this.board.getBuildings());
-            System.out.println("2 => 自フィールド");
-            System.out.println(currentPlayer.getBuildings());
-            System.out.println();
-
-            // 労働者を働かせるエリアを選ぶ。まず二択
-            int optionA = Display.scanNextInt(2);
-            List<Card> area = new ArrayList<>();
-            switch (optionA) {
-                case 0:
-                    area = this.board.getBuildings();
-                    Display.printChoices(this.board.getBuildings());
-                    break;
-                case 1:
-                    area = currentPlayer.getBuildings();
-                    Display.printChoices(currentPlayer.getBuildings());
-                    break;
-            }
-
-            if (area.isEmpty()) {
-                System.out.println("選択可能なカードが存在しません");
-                continue;
-            }
-
-            // 具体的なカードの選択を受け取る
-            int optionB = Display.scanNextInt(area.size());
-
-            // 選択されたカードを取得
-            cardToWork = area.get(optionB);
-
-            // カードを使用する
-            done = cardToWork.apply(currentPlayer, this.board);
-            if (!done) {
-                System.out.println("丸投げだけど、何らかの理由で使用できません。もう一度最初から");
-            }
-        } while (!done);
-        currentPlayer.addHistory(cardToWork);
-    }
-
-    private void AIPlayerTurn(Player currentPlayer) {
-
-        AIPlayer aiPlayer = (AIPlayer) currentPlayer;
-        Card cardToWork = null;
-        boolean done = false;
-        int stuck = -1;
-        do {
-            stuck++;
-            if (stuck >= this.maxStucks) {
-                // 強制で鉱山を使わせる
-                // このブロックを下に置くとcontinueの時に実行されず無限ループ
-                // TODO
-                System.out.println("stuck...");
-                System.out.println("forced-piloting initiated");
-                this.board.getBuildings().get(0).apply(aiPlayer, this.board);
-                break;
-            }
-
-            List<Integer> options = aiPlayer.getBrain().thinkUseCard(aiPlayer, this.board, stuck);
-            System.out.println("AI wants to use the card at: " + options);
-
-            int areaChoice = options.get(0);
-            List<Card> area;
-            switch (areaChoice) {
-                case 0:
-                    area = this.board.getBuildings();
-                    if (this.isAITransparent)
-                        Display.printChoices(this.board.getBuildings());
-                    break;
-                case 1:
-                    area = currentPlayer.getBuildings();
-                    if (this.isAITransparent)
-                        Display.printChoices(currentPlayer.getBuildings());
-                    break;
-                default:
-                    area = new ArrayList<>();
-            }
-
-            if (area.isEmpty()) {
-                continue;
-            }
-            // 選択されたエリアからカードを取得
-            try {
-                cardToWork = area.get(options.get(1));
-                System.out.println(cardToWork);
-            } catch (IndexOutOfBoundsException e) {
-                System.out.println("Bad AI! auto-piloting initiated");
-                cardToWork = this.board.getBuildings().get(0);
-            }
-
-            try {
-                // カードを使用する
-                done = cardToWork.apply(aiPlayer, this.board);
-            } catch (IndexOutOfBoundsException e) {
-                e.printStackTrace();
-            }
-
-            System.out.println("AttemptSuccess? " + done);
-            try {
-                Thread.sleep(this.waitTime);
-            } catch (InterruptedException e) {
-                // e.printStackTrace();
-            }
-
-        } while (!done);
-        currentPlayer.addHistory(cardToWork);
-        if (this.pauseOnAITurn) {
-            System.out.println();
-            System.out.println("AIの行動を確認できるよう一時停止しています");
-            System.out.println("解除するには 1 を入力してください");
-            Display.scanNextInt(1);
-        }
-    }
-
-    // TODO
-    // public void addTrash(Card c) {
-    // this.board.getTrash().add(c);
-    // }
 
     // #region setter/getter
     public static boolean isAITransparent() {
@@ -552,10 +318,6 @@ public class GameManager {
 
     public int getCurrentTurn() {
         return currentTurn;
-    }
-
-    public int getCurrentWage() {
-        return currentWage;
     }
 
     public Player getParentPlayer() {
@@ -580,6 +342,22 @@ public class GameManager {
 
     public boolean hasManyPlayers() {
         return this.hasManyPlayers;
+    }
+
+    public static int getMaxStucks() {
+        return getInstance().maxStucks;
+    }
+
+    public static int getWaitTime() {
+        return getInstance().waitTime;
+    }
+
+    public static boolean isPauseOnAITurn() {
+        return getInstance().pauseOnAITurn;
+    }
+
+    public static int getCurrentWage() {
+        return getInstance().currentWage;
     }
     // #endregion
 

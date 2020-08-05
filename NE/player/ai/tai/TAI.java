@@ -7,6 +7,7 @@ import static NE.card.Card.CardCategory.INDUSTRY;
 import static NE.card.Card.CardCategory.MARKET;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -20,6 +21,7 @@ import NE.board.Board;
 import NE.card.Card;
 import NE.card.Card.CardCategory;
 import NE.data.CsvImporter;
+import NE.display.Display;
 import NE.main.GameManager;
 import NE.main.Main;
 import NE.player.Player;
@@ -416,8 +418,10 @@ public class TAI implements IAI {
                 // トータルで4コストの組み合わせを探す
                 // そうなるには4-1=3コスト以下のカードが候補になる
                 // candidates = 1,2,3
-                List<Card> filtered = candidates.stream().filter(c -> c.getCost(self) <= totalCostToBe - 1).sorted((e1,
-                        e2) -> this.CARDS_BASE_EVALUATION.get(e1.getId()) - this.CARDS_BASE_EVALUATION.get(e2.getId()))
+                List<Card> filtered = candidates.stream().filter(c -> c.getCost(self) <= totalCostToBe - 1)
+                        .sorted((e1,
+                                e2) -> (int) (e2.getCost(self) * calcSituationCoefficientToBuild(e2.getId())
+                                        - e1.getCost(self) * calcSituationCoefficientToBuild(e1.getId())))
                         .collect(Collectors.toList());
 
                 for (int i = 0; i < filtered.size(); i++) {
@@ -477,7 +481,14 @@ public class TAI implements IAI {
         if (!commodities.isEmpty()) {
             return self.getHands().indexOf(commodities.get(0));
         } else {
-            return self.getHands().indexOf(candidates.get(new Random().nextInt(candidates.size())));
+            // 候補の中からbase_evaluationの一番低いものを捨てる
+            Card card = candidates.stream()
+                    .sorted(Comparator.comparing(c -> this.CARDS_BASE_EVALUATION.get(c.getId()),
+                            Comparator.naturalOrder()))
+                    .peek(c -> System.out.println(c)).collect(Collectors.toList()).get(0);
+            return self.getHands().indexOf(card);
+            // return self.getHands().indexOf(candidates.get(new
+            // Random().nextInt(candidates.size())));
         }
     }
 
@@ -534,7 +545,7 @@ public class TAI implements IAI {
     }
 
     private int getTotalWages() {
-        return getWorkerCounts() * GameManager.getInstance().getCurrentWage();
+        return getWorkerCounts() * GameManager.getCurrentWage();
     }
 
     // #endregion

@@ -57,10 +57,9 @@ public abstract class Player {
 
     }
 
-    // public abstract void processTurn(Board board);
-    // TODO
+    public abstract void processTurn(Board board);
 
-    // public abstract void payWages(Board board);
+    public abstract void payWages(Board board);
 
     // 捨てたいカードを聞く。人間なら入力を求め、AIならthinkDiscard()を使う。
     // ただし、askBuildと別に聞いているため、建てるカードと捨てるカードが被る可能性が出てくることに注意

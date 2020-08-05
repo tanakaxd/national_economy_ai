@@ -121,7 +121,7 @@ public class SimpleTAI implements IAI {
 
         // 賃金が十分にあるか
         if (isNewStrategy(CardCategory.MARKET)) {
-            int totalWages = this.self.getWorkers().size() * GameManager.getInstance().getCurrentWage();
+            int totalWages = this.self.getWorkers().size() * GameManager.getCurrentWage();
             if (this.self.getMoney() <= totalWages - 8) {
                 this.topPriority = CardCategory.MARKET;
                 return;
