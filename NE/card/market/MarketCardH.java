@@ -29,7 +29,7 @@ public class MarketCardH extends MarketCard {
     public boolean apply(Player player, Board board) {
         int earnings = (int) (player.getHands().stream().filter(c -> c.getCategory() == CardCategory.COMMODITY).count()
                 * 4);
-        if (board.getGdp() < earnings || this.isWorked) {
+        if (board.getHoldholdIncome() < earnings || this.isWorked) {
             return false;
         }
 

@@ -12,6 +12,7 @@ public abstract class ConstructionCard extends Card {
 
     }
 
+    // template method
     @Override
     public final boolean apply(Player player, Board board) {
         if ((player.getHands().stream().filter(c -> c.isBuildable()).count() < this.amountsToBuild) || this.isWorked)

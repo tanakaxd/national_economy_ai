@@ -28,7 +28,7 @@ public class MarketCardG extends MarketCard {
 
     @Override
     public boolean apply(Player player, Board board) {
-        if (board.getGdp() < 20 || this.isWorked) {
+        if (board.getHoldholdIncome() < 20 || this.isWorked) {
             return false;
         }
 

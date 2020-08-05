@@ -57,6 +57,11 @@ public abstract class Player {
 
     }
 
+    // public abstract void processTurn(Board board);
+    // TODO
+
+    // public abstract void payWages(Board board);
+
     // 捨てたいカードを聞く。人間なら入力を求め、AIならthinkDiscard()を使う。
     // ただし、askBuildと別に聞いているため、建てるカードと捨てるカードが被る可能性が出てくることに注意
     public abstract List<Integer> askDiscard(Board board, int cost);
@@ -150,7 +155,7 @@ public abstract class Player {
     public void payMoney(Board board, int totalWages) {
         int payment = Math.min(this.money, totalWages);
         System.out.println(this.name + " payed: $" + payment);
-        board.addGdp(payment);
+        board.addHouseholdIncome(payment);
         this.money -= totalWages;
         if (this.money < 0) {
             this.debt += this.money;
@@ -194,7 +199,7 @@ public abstract class Player {
 
     public void earnMoney(Board board, int profit) {
         this.money += profit;
-        board.setGdp(board.getGdp() - profit);// TODO
+        board.setHouseholdIncome(board.getHoldholdIncome() - profit);// TODO
     }
 
     public void initForTurn() {

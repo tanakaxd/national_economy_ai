@@ -16,7 +16,7 @@ public class Board {
     private Deck deck;
     private List<Card> buildings = new ArrayList<>();
     private List<Card> trash = new ArrayList<>();
-    private int gdp = 0;
+    private int householdIncome = 0;
 
     public Board(int cardsInDeck) {
         this.deck = new Deck(cardsInDeck);
@@ -59,8 +59,8 @@ public class Board {
         }
     }
 
-    public void addGdp(int amount) {
-        this.gdp += amount;
+    public void addHouseholdIncome(int amount) {
+        this.householdIncome += amount;
     }
 
     public void refreshAllBuildings() {
@@ -75,12 +75,12 @@ public class Board {
         return buildings;
     }
 
-    public int getGdp() {
-        return gdp;
+    public int getHoldholdIncome() {
+        return householdIncome;
     }
 
-    public void setGdp(int gdp) {
-        this.gdp = gdp;
+    public void setHouseholdIncome(int householdIncome) {
+        this.householdIncome = householdIncome;
     }
 
     public Deck getDeck() {

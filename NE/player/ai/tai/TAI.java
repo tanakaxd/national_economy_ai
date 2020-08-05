@@ -38,8 +38,8 @@ public class TAI implements IAI {
     // B
     // 以下4つの要素でカードごとの価値を計算する
     // 1. カードの基礎価値=baseEvaluation 0-50
-    // 2. 状況（ターン数、アクション数、手札枚数、所有物件、労働者数、GDP）に基づいたカテゴリー価値=categoryValue 0-50
-    // 2. 状況（ターン数、アクション数、手札枚数、所有物件、労働者数、GDP）に基づいたカード個別の係数=situationalCoefficient 0-2
+    // 2. 状況（ターン数、アクション数、手札枚数、所有物件、労働者数、家計）に基づいたカテゴリー価値=categoryValue 0-50
+    // 2. 状況（ターン数、アクション数、手札枚数、所有物件、労働者数、家計）に基づいたカード個別の係数=situationalCoefficient 0-2
     // 4. カテゴリー価値を補正するPERSONALITY=personalityFavor 0.5-1.5
     // PERSONALITY: favor[category, huristicRate]
     // => cardValue =
@@ -47,8 +47,8 @@ public class TAI implements IAI {
     // ((0~50) + (0~50)*(0.5~1.5))*(0~2)
 
     // 具体的に
-    // 状況１：ターン1、残りアクション数２、手札３、所有物件なし、労働者数２、GDP５
-    // 状況２：たーん５、残りアクション数４、手札０、所有物件なし、労働者数５、GDP３０
+    // 状況１：ターン1、残りアクション数２、手札３、所有物件なし、労働者数２、家計５
+    // 状況２：たーん５、残りアクション数４、手札０、所有物件なし、労働者数５、家計３０
 
     // 芋畑1：(35 + 15*1) * 0.1 = 5
     // 芋畑2：(35 + 45*1) * 1.5 = 120
@@ -111,8 +111,8 @@ public class TAI implements IAI {
     private int calcCardValueToUse(Card card) {
         // 以下4つの要素でカードごとの価値を計算する
         // 1. カードの基礎価値=baseEvaluation 0-50
-        // 2. 状況（ターン数、アクション数、手札枚数、所有物件、労働者数、GDP）に基づいたカテゴリー価値=categoryValue 0-50
-        // 2. 状況（ターン数、アクション数、手札枚数、所有物件、労働者数、GDP）に基づいたカード個別の係数=situationalCoefficient 0-2
+        // 2. 状況（ターン数、アクション数、手札枚数、所有物件、労働者数、家計）に基づいたカテゴリー価値=categoryValue 0-50
+        // 2. 状況（ターン数、アクション数、手札枚数、所有物件、労働者数、家計）に基づいたカード個別の係数=situationalCoefficient 0-2
         // 4. カテゴリー価値を補正するPERSONALITY=personalityFavor 0.5-1.5
         // PERSONALITY: favor[category, huristicRate]
         // => cardValue =
@@ -144,7 +144,7 @@ public class TAI implements IAI {
         }
 
         // AGRICULTURE, CONSTRUCTION, INDUSTRY, MARKET, EDUCATION
-        // 状況（ターン数、アクション数、手札枚数、所有物件、労働者数、GDP）
+        // 状況（ターン数、アクション数、手札枚数、所有物件、労働者数、家計）
 
         // ターン数をチェック
         if (getCurrentTurn() <= 3) {
@@ -227,12 +227,12 @@ public class TAI implements IAI {
             addCategoryValue(EDUCATION, 25);
         }
 
-        // GDPが多い MARKET
-        if (getGDP() >= 100) {
+        // 家計が多い MARKET
+        if (getHouseholdIncome() >= 100) {
             addCategoryValue(MARKET, 50);
-        } else if (getGDP() >= 50) {
+        } else if (getHouseholdIncome() >= 50) {
             addCategoryValue(MARKET, 25);
-        } else if (getGDP() <= 9) {
+        } else if (getHouseholdIncome() <= 9) {
             addCategoryValue(MARKET, -50);
             addCategoryValue(CONSTRUCTION, 25);
         }
@@ -352,8 +352,8 @@ public class TAI implements IAI {
             // C
             // 以下4つの要素でカードごとの価値を計算し、sortする
             // 1. カードの基礎価値=baseEvaluation 0-50
-            // 2. 状況（ターン数、アクション数、手札枚数、所有物件、労働者数、GDP）に基づいたカテゴリー価値=categoryValue 0-50
-            // 2. 状況（ターン数、アクション数、手札枚数、所有物件、労働者数、GDP）に基づいたカード個別の係数=situationalCoefficient 0-2
+            // 2. 状況（ターン数、アクション数、手札枚数、所有物件、労働者数、家計）に基づいたカテゴリー価値=categoryValue 0-50
+            // 2. 状況（ターン数、アクション数、手札枚数、所有物件、労働者数、家計）に基づいたカード個別の係数=situationalCoefficient 0-2
             // 4. カテゴリー価値を補正するPERSONALITY=personalityFavor 0.5-1.5
             // PERSONALITY: favor[category, huristicRate]
             // => cardValue =
@@ -361,8 +361,8 @@ public class TAI implements IAI {
             // ((0~50) + (0~50)*(0.5~1.5))*(0~2)
 
             // 具体的に
-            // 状況１：ターン1、残りアクション数２、手札３、所有物件なし、労働者数２、GDP５
-            // 状況２：たーん５、残りアクション数４、手札０、所有物件なし、労働者数５、GDP３０
+            // 状況１：ターン1、残りアクション数２、手札３、所有物件なし、労働者数２、家計５
+            // 状況２：たーん５、残りアクション数４、手札０、所有物件なし、労働者数５、家計３０
 
             // 芋畑1：(35 + 15*1) * 0.1 = 5
             // 芋畑2：(35 + 45*1) * 1.5 = 120
@@ -529,8 +529,8 @@ public class TAI implements IAI {
         return this.self.getWorkers().size();
     }
 
-    private int getGDP() {
-        return GameManager.getInstance().getGDP();
+    private int getHouseholdIncome() {
+        return GameManager.getInstance().getHouseholdIncome();
     }
 
     private int getTotalWages() {

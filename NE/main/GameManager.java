@@ -23,8 +23,6 @@ import NE.player.HumanPlayer;
 import NE.player.Player;
 import NE.player.Worker;
 import NE.player.ai.AhoAI;
-import NE.player.ai.RandomAI;
-import NE.player.ai.SimpleTAI;
 import NE.player.ai.tai.TAI;
 import NE.player.ai.tai.TAIGeneExtractor;
 import NE.player.ai.tai.TAIGeneLoader.GeneMode;
@@ -37,7 +35,7 @@ public class GameManager {
     private Player parentPlayer;
     // private Player currentPlayer;
     private int currentTurn = 1;
-    private int currentWage = 2;
+    private int currentWage;
     private List<Card> publicBuildings = new ArrayList<>();
 
     // game settings
@@ -60,13 +58,25 @@ public class GameManager {
     public void init() {
         this.board = new Board(this.cardsInDeck);
 
-        this.players.add(new HumanPlayer(this.board));
-        // this.players.add(new AIPlayer(this.board, new AhoAI()));
+        // this.players.add(new HumanPlayer(this.board));
+
+        // Player player = this.players.get(0);
+        // player.build(new AgricultureCardA());
+        // player.build(new AgricultureCardB());
+        // player.build(new AgricultureCardC());
+        // player.build(new AgricultureCardA());
+        // player.build(new FacilityCardB());
+        // player.addWorker(false);
+        // player.addWorker(false);
+        // player.addWorker(false);
+        // player.addWorker(false);
+
+        this.players.add(new AIPlayer(this.board, new AhoAI()));
         this.players.add(new AIPlayer(this.board, new TAI(GeneMode.GENETIC_ALGORITHM)));
-        this.players.add(new AIPlayer(this.board, new TAI()));
-        // this.players.add(new AIPlayer(this.board, new TAI(84, 48, 74, 53, 107,
-        // 179)));
-        this.players.add(new AIPlayer(this.board, new TAI(132, 40, 99, 125, 29, 73)));
+        this.players.add(new AIPlayer(this.board, new TAI(200, 200, 74, 0, 200, 0)));
+        this.players.add(new AIPlayer(this.board, new TAI(84, 48, 74, 53, 107, 179)));
+        // this.players.add(new AIPlayer(this.board, new TAI(132, 40, 99, 125, 29,
+        // 73)));
         // this.players.add(new AIPlayer(this.board, new
         // TAI(GeneMode.GENETIC_ALGORITHM)));
         // this.players.add(new AIPlayer(this.board, new TAI(GeneMode.SPECIFIC)));
@@ -125,6 +135,7 @@ public class GameManager {
                 // ターンが回ってきたプレイヤーの情報を表示
                 displayPlayerInfo(currentPlayer);
 
+                // TODO
                 if (currentPlayer instanceof HumanPlayer) {
                     humanPlayerTurn(currentPlayer);
                 } else {
@@ -168,7 +179,7 @@ public class GameManager {
         System.out.println();
         System.out.println("ActionCounts: " + currentPlayer.getActionCount());
         System.out.println("OwnedWorkers: " + currentPlayer.getWorkers().size());
-        System.out.println("GDP: " + this.board.getGdp());
+        System.out.println("HoldholdIncome: " + this.board.getHoldholdIncome());
         System.out.println("ExpectedWages: " + currentPlayer.getWorkers().size() * this.currentWage);
         System.out.println("Money: " + currentPlayer.getMoney());
         System.out.println("Debt: " + -currentPlayer.getDebt() + " => " + currentPlayer.getDebt() * 3);
@@ -204,7 +215,7 @@ public class GameManager {
 
     private void inflateWage() {
         if (this.currentTurn <= 2) {
-            this.currentWage = 2;
+            this.currentWage = 3;// TODO modified
         } else if (this.currentTurn <= 5) {
             this.currentWage = 3;
         } else if (this.currentTurn <= 7) {
@@ -241,6 +252,7 @@ public class GameManager {
         if (hands.size() <= currentPlayer.getHandLimits())
             return;
 
+        System.out.println(currentPlayer.getName());
         System.out.println("手札上限を超える分を捨ててください");
         Display.printChoices(hands);
         int discardsAmount = hands.size() - currentPlayer.getHandLimits();
@@ -294,30 +306,95 @@ public class GameManager {
         // トータル賃金
         int totalWages = player.getWorkers().size() * this.currentWage;
 
-        // 賃金を所持金でまかなえなければ所持物件を売る
-        List<Card> buildings = player.getBuildings();
-        int count = 0;
-        while (player.getMoney() < totalWages
-                && buildings.stream().filter(c -> c.getCategory() != CardCategory.FACILITY).count() > 0) {
-            if (player instanceof HumanPlayer) {
-                System.out.println("売却するカードを選択してください");
-                Display.printChoices(player.getBuildings());
-                int option = Display.scanNextInt(player.getBuildings().size());
-                player.sellBuildings(this.board, option);
-            } else {
-                // todo stuckの可能性あり。とりあえずランダムで抜けられる
-                AIPlayer ai = (AIPlayer) player;
+        // 不足金額
+        int deficit = totalWages - player.getMoney();
+        System.out.println("deficit: " + deficit);
+
+        List<Card> buildingsSold = new ArrayList<>();
+
+        // Beforeを保存
+        List<Card> buildingsBefore = new ArrayList<>(player.getBuildings());// 丸ごとクローンして保存
+        int moneyBefore = player.getMoney();
+
+        int outerCount = 0;
+        while (true) {
+            int innerCount = 0;
+            // 賃金を所持金でまかなえなければ所持物件を売る
+            while (player.getMoney() < totalWages && player.getBuildings().stream()
+                    .filter(c -> c.getCategory() != CardCategory.FACILITY).count() > 0) {
+
+                Card buildingToSell = null;
                 int option;
-                if (count > 10) {
-                    option = new Random().nextInt(ai.getBuildings().size());
-                    System.out.println("infinite loop detected... Auto-piloting initiated");
+
+                // TODO option をリターンするメソッドをプレイヤーに作って多態性
+                if (player instanceof HumanPlayer) {
+                    System.out.println("売却するカードを選択してください");
+                    Display.printChoices(player.getBuildings());
+                    option = Display.scanNextInt(player.getBuildings().size());
                 } else {
-                    option = ai.getBrain().thinkSell(ai, this.board);
+                    // todo stuckの可能性あり。とりあえずランダムで抜けられる
+                    AIPlayer ai = (AIPlayer) player;
+                    if (innerCount > 10 || outerCount >= 1) {// 恣意的な基準
+                        option = new Random().nextInt(ai.getBuildings().size());
+                        System.out.println("infinite loop detected... Auto-piloting initiated");
+                    } else {
+                        option = ai.getBrain().thinkSell(ai, this.board);
+                    }
                 }
-                ai.sellBuildings(this.board, option);
+                buildingToSell = player.getBuildings().get(option);
+
+                if (buildingToSell.getCategory() == CardCategory.FACILITY)
+                    continue;
+
+                buildingsSold.add(buildingToSell);
+                player.sellBuildings(this.board, buildingToSell);
+                innerCount++;
             }
-            count++;
+
+            System.out.println("buildingsSold " + buildingsSold);
+
+            // 売ったカードをチェックする
+            // まず売った建物を価値で昇順にソート
+            List<Card> cardsToSellOrdered = buildingsSold.stream()
+                    .sorted(Comparator.comparing(Card::getValue, Comparator.naturalOrder()))
+                    .collect(Collectors.toList());
+
+            System.out.println("cardsToSellOrdered " + cardsToSellOrdered);
+
+            boolean isOK = true;
+            int totalValue = 0;
+            // 売ったカードの価格を一つ一つ足していき、リストがすべて終わる前に不足金額に達したら不正
+            for (int i = cardsToSellOrdered.size() - 1; i >= 0; i--) {
+                totalValue += GameManager.getInstance().isSinglePlay ? cardsToSellOrdered.get(i).getValue() / 2
+                        : cardsToSellOrdered.get(i).getValue();
+                if (totalValue >= deficit && i > 0) {
+                    isOK = false;
+                    break;
+                }
+                System.out.println("in loop");
+            }
+
+            if (isOK) {
+                break;
+            }
+            System.out.println("売却物件が不正です。もう一度やり直してください");
+            // 巻き戻し処理
+            // 公共エリアから消す
+            this.board.getBuildings().removeAll(cardsToSellOrdered);
+            // 持ち物件に加える
+            // player.getBuildings().addAll(cardsToSell);
+            // 持ち物件を戻す。ただし、参照が変わる。もしほかの場所で参照を保持しているならバグが出る
+            player.setBuildings(buildingsBefore);
+            // 所持金を戻す
+            player.setMoney(moneyBefore);
+
+            buildingsSold.clear();
+
+            outerCount++;
+
+            Display.scanNextInt(1);
         }
+
         // 賃金を支払う
         player.payMoney(this.board, totalWages);
     }
@@ -379,7 +456,7 @@ public class GameManager {
 
     private void AIPlayerTurn(Player currentPlayer) {
 
-        AIPlayer ai = (AIPlayer) currentPlayer;
+        AIPlayer aiPlayer = (AIPlayer) currentPlayer;
         Card cardToWork = null;
         boolean done = false;
         int stuck = -1;
@@ -391,12 +468,11 @@ public class GameManager {
                 // TODO
                 System.out.println("stuck...");
                 System.out.println("forced-piloting initiated");
-                this.board.getBuildings().get(0).apply(ai, this.board);
+                this.board.getBuildings().get(0).apply(aiPlayer, this.board);
                 break;
             }
 
-            // Humanplayerの時と違って、どのエリアかも一緒にリターンしてくる
-            List<Integer> options = ai.getBrain().thinkUseCard(ai, this.board, stuck);
+            List<Integer> options = aiPlayer.getBrain().thinkUseCard(aiPlayer, this.board, stuck);
             System.out.println("AI wants to use the card at: " + options);
 
             int areaChoice = options.get(0);
@@ -430,7 +506,7 @@ public class GameManager {
 
             try {
                 // カードを使用する
-                done = cardToWork.apply(ai, this.board);
+                done = cardToWork.apply(aiPlayer, this.board);
             } catch (IndexOutOfBoundsException e) {
                 e.printStackTrace();
             }
@@ -494,8 +570,8 @@ public class GameManager {
         this.parentPlayer = parentPlayer;
     }
 
-    public int getGDP() {
-        return this.board.getGdp();
+    public int getHouseholdIncome() {
+        return this.board.getHoldholdIncome();
     }
 
     public boolean isRandomDeck() {

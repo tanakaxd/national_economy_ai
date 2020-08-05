@@ -16,7 +16,7 @@ public abstract class MarketCard extends Card {
 
     @Override
     public boolean apply(Player player, Board board) {
-        if (board.getGdp() < this.profit || player.getHands().size() < this.discards || this.isWorked) {
+        if (board.getHoldholdIncome() < this.profit || player.getHands().size() < this.discards || this.isWorked) {
             return false;
         }
 
