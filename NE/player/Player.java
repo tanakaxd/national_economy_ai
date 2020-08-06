@@ -198,7 +198,7 @@ public abstract class Player {
 
     public void earnMoney(Board board, int profit) {
         this.money += profit;
-        board.setHouseholdIncome(board.getHoldholdIncome() - profit);// TODO
+        board.setHouseholdIncome(board.getHoldholdIncome() - profit);// TODO if
     }
 
     public void initForTurn() {

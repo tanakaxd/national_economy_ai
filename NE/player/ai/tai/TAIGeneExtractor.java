@@ -202,7 +202,7 @@ public class TAIGeneExtractor {
     }
 
     private int calcFitness(int ranking, int score) {
-        // TODO
+        // TODO いかようにも変更しうる
         return (int) (score >= 0 ? Math.pow((double) score / 10, 2) : 0);
     }
 

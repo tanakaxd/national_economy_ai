@@ -66,7 +66,6 @@ public class SimpleTAI implements IAI {
 
         } while (!isPossible);
 
-        // TODO
         this.buildingToWork = this.actions.get(0) == 0 ? this.board.getBuildings().get(this.actions.get(1))
                 : this.self.getBuildings().get(this.actions.get(1));
 
@@ -183,7 +182,7 @@ public class SimpleTAI implements IAI {
         // }
 
         // コストが足りるものの中で高い順に
-        // TODO 地球建設を使えなくなる可能性。
+        // 地球建設を使えなくなる可能性。
         // 地球建設の場合、size()-2のコストになる組み合わせを選ぶのが最適。その実装はこのAIではやらない
         // やっぱやってみた
         if (this.buildingToWork.getId() == 14) {
@@ -235,23 +234,6 @@ public class SimpleTAI implements IAI {
             System.out.println(filtered);
             return this.self.getHands().indexOf(filtered.get(0));
         }
-
-        // 費用対効果が一番高いものを選ぶ TODO 並び替えられてない
-        // Map<Card, Integer> result = performances.entrySet().stream()
-        // .sorted(Map.Entry.<Card, Integer>comparingByValue().reversed())
-        // .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
-
-        // result.forEach((k, v) -> {
-        // System.out.println(k);
-        // System.out.println(v);
-        // });
-
-        // Object[] cards = result.keySet().toArray();
-        // for (Object card : cards) {
-        // System.out.println(card);
-        // }
-
-        // return this.self.getHands().indexOf(cards[0]);
 
     }
 

@@ -103,31 +103,31 @@ public class HumanPlayer extends Player {
     public void payWages(Board board) {
 
         // トータル賃金
-        int totalWages = this.getWorkers().size() * GameManager.getCurrentWage();
+        int totalWages = this.workers.size() * GameManager.getCurrentWage();
 
         // 不足金額
-        int deficit = totalWages - this.getMoney();
+        int deficit = totalWages - this.money;
         System.out.println("deficit: " + deficit);
 
         List<Card> buildingsSold = new ArrayList<>();
 
         // Beforeを保存
-        List<Card> buildingsBefore = new ArrayList<>(this.getBuildings());// 丸ごとクローンして保存
-        int moneyBefore = this.getMoney();
+        List<Card> buildingsBefore = new ArrayList<>(this.buildings);// 丸ごとクローンして保存
+        int moneyBefore = this.money;
 
         while (true) {
             // 賃金を所持金でまかなえなければ所持物件を売る
-            while (this.getMoney() < totalWages
-                    && this.getBuildings().stream().filter(c -> c.getCategory() != CardCategory.FACILITY).count() > 0) {
+            while (this.money < totalWages
+                    && this.buildings.stream().filter(c -> c.getCategory() != CardCategory.FACILITY).count() > 0) {
 
                 Card buildingToSell = null;
                 int option;
 
                 System.out.println("売却するカードを選択してください");
-                Display.printChoices(this.getBuildings());
-                option = Display.scanNextInt(this.getBuildings().size());
+                Display.printChoices(this.buildings);
+                option = Display.scanNextInt(this.buildings.size());
 
-                buildingToSell = this.getBuildings().get(option);
+                buildingToSell = this.buildings.get(option);
 
                 if (buildingToSell.getCategory() == CardCategory.FACILITY)
                     continue;
@@ -162,13 +162,18 @@ public class HumanPlayer extends Player {
                 break;
             }
             System.out.println("売却物件が不正です。もう一度やり直してください");
+
             // 巻き戻し処理
             // 公共エリアから消す
             board.getBuildings().removeAll(cardsToSellOrdered);
+
             // 持ち物件に加える
-            // this.getBuildings().addAll(cardsToSell);
+            // this.buildings.addAll(cardsToSell);
             // 持ち物件を戻す。ただし、参照が変わる。もしほかの場所で参照を保持しているならバグが出る
-            this.setBuildings(buildingsBefore);
+            this.setBuildings(new ArrayList<>(buildingsBefore));
+            // 下の方法だと、二週目以降にプレイヤーの建物リストと保存していたリストの参照が同じになってしまい、保存していたものが書き換えられてしまう
+            // this.setBuildings(buildingsBefore);
+
             // 所持金を戻す
             this.setMoney(moneyBefore);
 

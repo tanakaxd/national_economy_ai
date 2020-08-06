@@ -20,6 +20,7 @@ import NE.player.AIPlayer;
 import NE.player.HumanPlayer;
 import NE.player.Player;
 import NE.player.Worker;
+import NE.player.ai.SimpleTAI;
 import NE.player.ai.tai.TAI;
 import NE.player.ai.tai.TAIGeneExtractor;
 import NE.player.ai.tai.TAIGeneLoader.GeneMode;
@@ -53,10 +54,16 @@ public class GameManager {
     }
 
     public void init() {
+        // TODO ボードは初期化にプレイヤー人数を必要として、プレイヤーはボードからのドローが必要
+        // ボードが持つデッキはGMのRandomInitフィールドに依存している
+
+        // この時点でボートとデッキが作られる
+        // 公共職場はまだ
         this.board = new Board(this.cardsInDeck);
 
-        this.players.add(new HumanPlayer(this.board));
+        // this.players.add(new HumanPlayer(this.board));
 
+        // カード売買テスト
         // Player player = this.players.get(0);
         // player.build(new AgricultureCardA());
         // player.build(new AgricultureCardB());
@@ -69,10 +76,11 @@ public class GameManager {
         // player.addWorker(false);
 
         // this.players.add(new AIPlayer(this.board, new AhoAI()));
-        // this.players.add(new AIPlayer(this.board, new SimpleTAI()));
+        this.players.add(new AIPlayer(this.board, new SimpleTAI()));
         this.players.add(new AIPlayer(this.board, new TAI(GeneMode.GENETIC_ALGORITHM)));
         this.players.add(new AIPlayer(this.board, new TAI()));
-        this.players.add(new AIPlayer(this.board, new TAI(84, 48, 74, 53, 107, 179)));
+        this.players.add(new AIPlayer(this.board, new TAI()));
+        // this.players.add(new AIPlayer(this.board, new TAI()));
         // this.players.add(new AIPlayer(this.board, new TAI(132, 40, 99, 125, 29,
         // 73)));
         // this.players.add(new AIPlayer(this.board, new
@@ -95,6 +103,7 @@ public class GameManager {
         this.publicBuildings.add(new MarketCardE());
 
         // playerにカードを配る TODO
+        // TODO single playの時のデッキ補正。山札の一番上が食品工場
 
         this.isSinglePlay = this.players.size() == 1;
 
@@ -159,6 +168,10 @@ public class GameManager {
         }
         // ゲーム終了処理
         finishGame();
+    }
+
+    public void initBoardBuildings() {
+        this.board.initBoardBuildings();
     }
 
     private void displayPlayerInfo(Player currentPlayer) {
@@ -282,7 +295,6 @@ public class GameManager {
 
     private boolean isAllPlayersDone() {
         boolean isAllPlayersDone = true;
-        // TODO stream
         for (Player player : this.players) {
             if (player.isActive())
                 return false;

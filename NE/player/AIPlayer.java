@@ -50,7 +50,7 @@ public class AIPlayer extends Player {
             indexes.add(this.brain.thinkDiscard(this, board, indexes));
             count++;
             if (count >= 10) {
-                // TODO AIのstuckを予防する
+                // AIのstuckを予防する
                 System.out.println("infinite loop detected... Auto-piloting initiated");
 
                 break;
@@ -78,7 +78,7 @@ public class AIPlayer extends Player {
             indexes.add(this.brain.thinkDiscard(this, board, indexes));
             count++;
             if (count >= 10) {
-                // TODO AIのstuckを予防する
+                // AIのstuckを予防する
                 System.out.println("infinite loop detected... Auto-piloting initiated");
 
                 break;
@@ -99,7 +99,7 @@ public class AIPlayer extends Player {
             indexes.add(this.brain.thinkBuild(this, board, indexes));
             count++;
             if (count >= 10) {
-                // TODO AIのstuckを予防する
+                // AIのstuckを予防する
                 System.out.println("infinite loop detected... Auto-piloting initiated");
 
                 break;
@@ -119,7 +119,6 @@ public class AIPlayer extends Player {
             if (stuck >= GameManager.getMaxStucks()) {
                 // 強制で鉱山を使わせる
                 // このブロックを下に置くとcontinueの時に実行されず無限ループ
-                // TODO
                 System.out.println("stuck...");
                 System.out.println("forced-piloting initiated");
                 board.getBuildings().get(0).apply(this, board);
@@ -207,7 +206,6 @@ public class AIPlayer extends Player {
                 Card buildingToSell = null;
                 int option;
 
-                // todo stuckの可能性あり。とりあえずランダムで抜けられる
                 if (innerCount > 10 || outerCount >= 1) {// 恣意的な基準
                     option = new Random().nextInt(this.getBuildings().size());
                     System.out.println("infinite loop detected... Auto-piloting initiated");

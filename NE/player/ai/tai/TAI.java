@@ -269,8 +269,17 @@ public class TAI implements IAI {
                 result = this.self.getBuildings().stream().filter(c -> c.getCategory() == CardCategory.COMMODITY)
                         .count() * 0.5;
                 return result;
+            case 40:// 学校
+                result = getCurrentTurn() == 9 ? 0 : 1;
+                return result;
+            case 41:// 高等学校
+                result = getCurrentTurn() == 9 ? 0 : 1;
+                return result;
+            case 42:// 大学
+                result = getCurrentTurn() == 9 ? 0 : 1;
+                return result;
             case 43:// 専門学校
-                result = getCurrentTurn() == 8 ? 2 : 0;
+                result = getCurrentTurn() == 8 ? 2 : getCurrentTurn() == 9 ? 0 : 1;
                 return result;
             default:
                 return 1;
@@ -449,9 +458,9 @@ public class TAI implements IAI {
 
         } else {
             // 地球建設以外の場合
-            // TODO コストが足りるものの中で、costが高い順に、ソート順評価に状況に応じた係数をかける
-            // 建てられるものをフィルターにかける→Cardと評価のMapにする→評価が一番高いCardを取得
-            // ソートはいらない、O(n)のO(nlogn)差が出るはず
+            // コストが足りるものの中で、costと状況に応じた係数の積が高い順にソート
+            // TODO 建てられるものをフィルターにかける→Cardと評価のMapにする→評価が一番高いCardを取得
+            // そうすればソートはいらない、O(n)のO(nlogn)差が出るはず
             List<Card> filtered = candidates.stream().filter(c -> c.getCost(self) <= self.getHands().size() - 1)
                     .sorted((e1,
                             e2) -> (int) (e2.getCost(self) * calcSituationCoefficientToBuild(e2.getId())

@@ -6,11 +6,13 @@ import java.util.stream.Collectors;
 
 import NE.card.Card;
 import NE.card.Card.CardCategory;
+import NE.card.agriculture.AgricultureCardB;
 import NE.card.construction.ConstructionCardA;
 import NE.card.industry.IndustryCardA;
 import NE.card.industry.IndustryCardB;
 import NE.card.industry.IndustryCardH;
 import NE.card.school.SchoolCardA;
+import NE.main.GameManager;
 
 public class Board {
     private Deck deck;
@@ -20,12 +22,22 @@ public class Board {
 
     public Board(int cardsInDeck) {
         this.deck = new Deck(cardsInDeck);
+    }
+
+    public void initBoardBuildings() {
+        // GameManagerのinitが終わっていないとプレイヤー人数が取得できない
         this.buildings.add(new IndustryCardA());
         this.buildings.add(new ConstructionCardA());
-        this.buildings.add(new ConstructionCardA());
-        this.buildings.add(new ConstructionCardA());
+        if (!GameManager.getInstance().isSinglePlay()) {
+            this.buildings.add(new ConstructionCardA());
+            this.buildings.add(new ConstructionCardA());
+        }
         this.buildings.add(new SchoolCardA());
-        this.buildings.add(new IndustryCardB());
+        if (!GameManager.getInstance().isSinglePlay()) {
+            this.buildings.add(new IndustryCardB());
+        } else {
+            this.buildings.add(new AgricultureCardB());
+        }
     }
 
     public void refreshDeck() {
